@@ -1,3 +1,6 @@
+import 'elder_overview.dart';
+import 'guardian_demo.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -148,6 +151,40 @@ class SaathiApp extends StatefulWidget {
 }
 
 class _SaathiAppState extends State<SaathiApp> {
+  final navigator = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.preferences == null) return;
+    androidControls.setMethodCallHandler((call) async {
+      if (call.method == 'openAlerts') openAlerts();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (await androidControls.invokeMethod<bool>('consumeAlert') == true) {
+        openAlerts();
+      }
+      if (!mounted ||
+          widget.preferences!.getBool('notificationSetupShown') == true) {
+        return;
+      }
+      await widget.preferences!.setBool('notificationSetupShown', true);
+      await androidControls.invokeMethod<void>('requestNotifications');
+    });
+  }
+
+  void openAlerts() {
+    navigator.currentState?.push(
+      MaterialPageRoute<void>(builder: (_) => const DemoAlerts()),
+    );
+  }
+
+  @override
+  void dispose() {
+    if (widget.preferences != null) androidControls.setMethodCallHandler(null);
+    super.dispose();
+  }
+
   late String language =
       translations.containsKey(widget.preferences?.getString('language'))
       ? widget.preferences!.getString('language')!
@@ -158,6 +195,7 @@ class _SaathiAppState extends State<SaathiApp> {
     final text = translations[language]!;
     return MaterialApp(
       title: 'Saathi',
+      navigatorKey: navigator,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -312,21 +350,15 @@ class _ModePageState extends State<ModePage> {
       ),
       body: widget.elder
           ? LayoutBuilder(
-              builder: (context, constraints) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              builder: (context, constraints) => ListView(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
-                    child: Text(
-                      t[8],
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                  ),
+                  ElderOverview(language: language),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(t[9]),
                   ),
-                  Expanded(
+                  SizedBox(
+                    height: 380,
                     child: GridView.builder(
                       padding: const EdgeInsets.all(20),
                       scrollDirection: Axis.horizontal,
@@ -384,55 +416,7 @@ class _ModePageState extends State<ModePage> {
                 ],
               ),
             )
-          : ListView(
-              padding: const EdgeInsets.all(24),
-              children: [
-                Text(t[16], style: Theme.of(context).textTheme.headlineMedium),
-                const SizedBox(height: 8),
-                Text(t[17]),
-                const SizedBox(height: 24),
-                Card(
-                  color: const Color(0xff183a37),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.people_outline,
-                          color: Colors.white,
-                          size: 36,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          t[18],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          t[19],
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(t[20], style: Theme.of(context).textTheme.titleLarge),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.notifications_none),
-                    title: Text(t[21]),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(t[23]),
-              ],
-            ),
+          : const GuardianDemo(),
     );
   }
 }
@@ -460,6 +444,17 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           ListTile(
             title: Text(t[6], style: Theme.of(context).textTheme.titleLarge),
+          ),
+          ListTile(
+            leading: const Icon(Icons.notifications_outlined),
+            title: const Text('Notification settings'),
+            onTap: () =>
+                androidControls.invokeMethod<void>('notificationSettings'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.battery_saver_outlined),
+            title: const Text('Battery optimization'),
+            onTap: () => androidControls.invokeMethod<void>('batterySettings'),
           ),
           for (final option in translations.keys)
             ListTile(

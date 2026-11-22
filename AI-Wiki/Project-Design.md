@@ -48,3 +48,15 @@ A watch can work with an Android phone without running Wear OS. For synced activ
 - Huawei offers a separate authorized Health Kit integration. Amazfit's India Zepp FAQ lists services such as Google Fit and Strava. Direct Health Connect export from Zepp needs verification on the target app and device before promising support. [Huawei Health Kit](https://developer.huawei.com/consumer/en/hms/huaweihealth/) · [Amazfit Zepp FAQ](https://in.amazfit.com/pages/faq/what-apps-can-the-zepp-app-sync-with)
 
 A custom watch app remains an option for compatible Wear OS models. Consider a vendor API only when it covers a needed device or metric. Direct Bluetooth is an option only where the device exposes a supported sensor profile or integration protocol.
+
+## Proposed guardian dashboard and synthetic alert demo
+
+The requested next phase is a local dashboard and alert prototype. Use clearly labeled fictional people and measurements, including blood pressure, oxygen saturation, heart rate, temperature, and activity where sample data exists. Each entry needs a unit, measurement time, source, and an unavailable or stale state. Guardian can open a person and inspect current measurements and an alert history.
+
+Provide deterministic normal, high, low, and missing-data test scenarios. A shared evaluation path creates a timestamped local alert and a generic Android notification for designated test values. Explicitly label the scenarios and thresholds as demo-only. Real clinical interpretation, source validation, and individualized thresholds need separate design and clinical review.
+
+On first use, explain and request notification permission. Both modes' settings should display notification and battery-optimization status and link to Android settings so users can change them. Investigate background work and reboot recovery against current Android restrictions and verify on the target device. User-approved optimization exemptions do not guarantee continuous execution. AWS, Lambda, FCM, remote delivery, and Health Connect remain separate later integrations; local notification testing cannot establish remote push delivery.
+
+### Elder summary demo
+
+The Elder overview uses the fictional Meera profile and the latest scenario selected for her in Guardian mode. The overview shows a deterministic summary. Its request carries the selected app language code and flagged metrics so a future AI provider can produce a short localized summary from the same facts. The current version requires no network or API credentials.

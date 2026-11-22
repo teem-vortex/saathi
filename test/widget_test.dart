@@ -12,7 +12,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Guardian mode'));
     await tester.pumpAndSettle();
-    expect(find.text('Recent updates'), findsOneWidget);
+    expect(find.text('Health overview'), findsOneWidget);
     expect(find.byType(MaterialApp), findsOneWidget);
   });
 }
