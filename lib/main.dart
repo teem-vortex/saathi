@@ -1,121 +1,477 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final preferences = await SharedPreferences.getInstance();
+  runApp(SaathiApp(preferences: preferences));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+const translations = <String, List<String>>{
+  'English': [
+    'How will you use Saathi?',
+    'Elder mode',
+    'Guardian mode',
+    'A simple space to connect with family',
+    'See updates and stay connected',
+    'Settings',
+    'Language',
+    'Switch mode',
+    'Hello!',
+    'Swipe sideways for more actions',
+    'Talk to Saathi',
+    'Hear messages',
+    'I’m okay',
+    'Ask for a call',
+    'This action is coming soon.',
+    'Guardian dashboard',
+    'Stay connected',
+    'Updates from your family will appear here.',
+    'Your family',
+    'No family members connected yet.',
+    'Recent updates',
+    'No updates yet. Check-ins and requests will appear here.',
+    'Preview • Actions will be available later.',
+    'Preview • Family connection and messaging will be available later.',
+  ],
+  'தமிழ்': [
+    'சாதியை எவ்வாறு பயன்படுத்துவீர்கள்?',
+    'மூத்தோர் பகுதி',
+    'பராமரிப்பாளர் பகுதி',
+    'குடும்பத்துடன் இணைந்திருக்க',
+    'செய்திகளைப் பார்த்து தொடர்பில் இருங்கள்',
+    'அமைப்புகள்',
+    'மொழி',
+    'பகுதியை மாற்று',
+    'வணக்கம்!',
+    'மேலும் பார்க்க பக்கவாட்டில் நகர்த்தவும்',
+    'சாதியிடம் பேசுங்கள்',
+    'செய்திகளைக் கேளுங்கள்',
+    'நான் நலமாக இருக்கிறேன்',
+    'அழைக்கச் சொல்லுங்கள்',
+    'இந்த வசதி விரைவில் வரும்.',
+    'பராமரிப்பாளர் முகப்பு',
+    'தொடர்பில் இருங்கள்',
+    'குடும்பத்தின் புதுப்பிப்புகள் இங்கே தோன்றும்.',
+    'உங்கள் குடும்பம்',
+    'இன்னும் குடும்ப உறுப்பினர்கள் இணைக்கப்படவில்லை.',
+    'சமீபத்திய செய்திகள்',
+    'இன்னும் செய்திகள் இல்லை. நலம் விசாரிப்புகள் இங்கே தோன்றும்.',
+    'முன்னோட்டம் • வசதிகள் பின்னர் கிடைக்கும்.',
+    'முன்னோட்டம் • குடும்ப இணைப்பு பின்னர் கிடைக்கும்.',
+  ],
+  'ಕನ್ನಡ': [
+    'ಸಾಥಿಯನ್ನು ಹೇಗೆ ಬಳಸುತ್ತೀರಿ?',
+    'ಹಿರಿಯರ ವಿಭಾಗ',
+    'ಪಾಲಕರ ವಿಭಾಗ',
+    'ಕುಟುಂಬದೊಂದಿಗೆ ಸಂಪರ್ಕದಲ್ಲಿರಲು',
+    'ಮಾಹಿತಿ ನೋಡಿ ಸಂಪರ್ಕದಲ್ಲಿರಿ',
+    'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
+    'ಭಾಷೆ',
+    'ವಿಭಾಗ ಬದಲಿಸಿ',
+    'ನಮಸ್ಕಾರ!',
+    'ಹೆಚ್ಚಿನ ಆಯ್ಕೆಗಳಿಗೆ ಪಕ್ಕಕ್ಕೆ ಸರಿಸಿ',
+    'ಸಾಥಿಯೊಂದಿಗೆ ಮಾತನಾಡಿ',
+    'ಸಂದೇಶಗಳನ್ನು ಕೇಳಿ',
+    'ನಾನು ಚೆನ್ನಾಗಿದ್ದೇನೆ',
+    'ಕರೆ ಮಾಡಲು ತಿಳಿಸಿ',
+    'ಈ ಸೌಲಭ್ಯ ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿದೆ.',
+    'ಪಾಲಕರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+    'ಸಂಪರ್ಕದಲ್ಲಿರಿ',
+    'ಕುಟುಂಬದ ಮಾಹಿತಿ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.',
+    'ನಿಮ್ಮ ಕುಟುಂಬ',
+    'ಇನ್ನೂ ಕುಟುಂಬದ ಸದಸ್ಯರು ಸಂಪರ್ಕಿಸಿಲ್ಲ.',
+    'ಇತ್ತೀಚಿನ ಮಾಹಿತಿ',
+    'ಇನ್ನೂ ಮಾಹಿತಿ ಇಲ್ಲ. ಸಂದೇಶಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.',
+    'ಮುನ್ನೋಟ • ಸೌಲಭ್ಯಗಳು ನಂತರ ಲಭ್ಯ.',
+    'ಮುನ್ನೋಟ • ಕುಟುಂಬ ಸಂಪರ್ಕ ನಂತರ ಲಭ್ಯ.',
+  ],
+  'తెలుగు': [
+    'సాథిని ఎలా ఉపయోగిస్తారు?',
+    'పెద్దల విభాగం',
+    'సంరక్షకుల విభాగం',
+    'కుటుంబంతో అనుసంధానంగా ఉండటానికి',
+    'సమాచారం చూసి సంబంధంలో ఉండండి',
+    'సెట్టింగ్‌లు',
+    'భాష',
+    'విభాగం మార్చండి',
+    'నమస్కారం!',
+    'మరిన్ని చూడటానికి పక్కకు జరపండి',
+    'సాథితో మాట్లాడండి',
+    'సందేశాలు వినండి',
+    'నేను బాగున్నాను',
+    'కాల్ చేయమని అడగండి',
+    'ఈ సౌకర్యం త్వరలో వస్తుంది.',
+    'సంరక్షకుల డాష్‌బోర్డ్',
+    'సంబంధంలో ఉండండి',
+    'కుటుంబ సమాచారం ఇక్కడ కనిపిస్తుంది.',
+    'మీ కుటుంబం',
+    'కుటుంబ సభ్యులు ఇంకా కనెక్ట్ కాలేదు.',
+    'ఇటీవలి సమాచారం',
+    'ఇంకా సమాచారం లేదు. సందేశాలు ఇక్కడ కనిపిస్తాయి.',
+    'ప్రివ్యూ • సౌకర్యాలు తర్వాత అందుబాటులో ఉంటాయి.',
+    'ప్రివ్యూ • కుటుంబ కనెక్షన్ తర్వాత అందుబాటులో ఉంటుంది.',
+  ],
+  'മലയാളം': [
+    'സാഥി എങ്ങനെ ഉപയോഗിക്കും?',
+    'മുതിർന്നവരുടെ വിഭാഗം',
+    'പരിചാരകരുടെ വിഭാഗം',
+    'കുടുംബവുമായി ബന്ധപ്പെടാൻ',
+    'വിവരങ്ങൾ കണ്ട് ബന്ധം നിലനിർത്തുക',
+    'ക്രമീകരണങ്ങൾ',
+    'ഭാഷ',
+    'വിഭാഗം മാറ്റുക',
+    'നമസ്കാരം!',
+    'കൂടുതൽ കാണാൻ വശത്തേക്ക് നീക്കുക',
+    'സാഥിയോട് സംസാരിക്കുക',
+    'സന്ദേശങ്ങൾ കേൾക്കുക',
+    'എനിക്ക് സുഖമാണ്',
+    'വിളിക്കാൻ പറയുക',
+    'ഈ സൗകര്യം ഉടൻ വരും.',
+    'പരിചാരക ഡാഷ്‌ബോർഡ്',
+    'ബന്ധം നിലനിർത്താം',
+    'കുടുംബത്തിന്റെ വിവരങ്ങൾ ഇവിടെ കാണാം.',
+    'നിങ്ങളുടെ കുടുംബം',
+    'കുടുംബാംഗങ്ങളെ ഇതുവരെ ചേർത്തിട്ടില്ല.',
+    'പുതിയ വിവരങ്ങൾ',
+    'ഇതുവരെ വിവരങ്ങളില്ല. സന്ദേശങ്ങൾ ഇവിടെ കാണാം.',
+    'പ്രിവ്യൂ • സൗകര്യങ്ങൾ പിന്നീട് ലഭ്യമാകും.',
+    'പ്രിവ്യൂ • കുടുംബ ബന്ധം പിന്നീട് ലഭ്യമാകും.',
+  ],
+};
 
-  // This widget is the root of your application.
+class SaathiApp extends StatefulWidget {
+  const SaathiApp({super.key, this.preferences});
+  final SharedPreferences? preferences;
+  @override
+  State<SaathiApp> createState() => _SaathiAppState();
+}
+
+class _SaathiAppState extends State<SaathiApp> {
+  late String language =
+      translations.containsKey(widget.preferences?.getString('language'))
+      ? widget.preferences!.getString('language')!
+      : 'English';
+
   @override
   Widget build(BuildContext context) {
+    final text = translations[language]!;
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Saathi',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff246b60)),
+        scaffoldBackgroundColor: const Color(0xfff7f6f0),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: Builder(
+        builder: (context) {
+          void openSettings() => Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (_) => SettingsPage(
+                language: language,
+                onChanged: (value) async {
+                  setState(() => language = value);
+                  await widget.preferences?.setString('language', value);
+                },
+              ),
+            ),
+          );
+          return ModePicker(
+            text: text,
+            openSettings: openSettings,
+            language: language,
+            onChanged: (value) async {
+              setState(() => language = value);
+              await widget.preferences?.setString('language', value);
+            },
+          );
+        },
+      ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class ModePicker extends StatelessWidget {
+  const ModePicker({
+    super.key,
+    required this.text,
+    required this.openSettings,
+    required this.language,
+    required this.onChanged,
+  });
+  final List<String> text;
+  final VoidCallback openSettings;
+  final String language;
+  final ValueChanged<String> onChanged;
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+  Widget build(BuildContext context) => Scaffold(
+    body: SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.all(24),
+            children: [
+              const Icon(
+                Icons.favorite_rounded,
+                color: Color(0xff246b60),
+                size: 44,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Saathi',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineLarge,
+              ),
+              const SizedBox(height: 40),
+              Text(text[0], style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 20),
+              for (var i = 1; i <= 2; i++)
+                Card(
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(18),
+                    leading: Icon(
+                      i == 1
+                          ? Icons.waving_hand_outlined
+                          : Icons.people_outline,
+                      size: 34,
+                    ),
+                    title: Text(
+                      text[i],
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    subtitle: Text(text[i + 2]),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => ModePage(
+                          elder: i == 1,
+                          language: language,
+                          onChanged: onChanged,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    ),
+  );
+}
+
+class ModePage extends StatefulWidget {
+  const ModePage({
+    super.key,
+    required this.elder,
+    required this.language,
+    required this.onChanged,
+  });
+  final bool elder;
+  final String language;
+  final ValueChanged<String> onChanged;
+  @override
+  State<ModePage> createState() => _ModePageState();
+}
+
+class _ModePageState extends State<ModePage> {
+  late String language = widget.language;
+  @override
+  Widget build(BuildContext context) {
+    final t = translations[language]!;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.elder ? 'Saathi' : t[15]),
+        actions: [
+          IconButton(
+            tooltip: t[5],
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) => SettingsPage(
+                  language: language,
+                  onChanged: (value) {
+                    setState(() => language = value);
+                    widget.onChanged(value);
+                  },
+                ),
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(t[7]),
+          ),
+        ],
+      ),
+      body: widget.elder
+          ? LayoutBuilder(
+              builder: (context, constraints) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+                    child: Text(
+                      t[8],
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(t[9]),
+                  ),
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(20),
+                      scrollDirection: Axis.horizontal,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 14,
+                        crossAxisSpacing: 14,
+                        mainAxisExtent: (constraints.maxWidth - 54) / 2,
+                      ),
+                      itemCount: 4,
+                      itemBuilder: (context, index) => Card(
+                        color: Colors.white,
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: () =>
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(content: Text(t[14]))),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  [
+                                    Icons.mic_none,
+                                    Icons.volume_up_outlined,
+                                    Icons.favorite_border,
+                                    Icons.phone_outlined,
+                                  ][index],
+                                  size: 42,
+                                  color: const Color(0xff246b60),
+                                ),
+                                const SizedBox(height: 12),
+                                Flexible(
+                                  child: Text(
+                                    t[10 + index],
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                    child: Text(t[22]),
+                  ),
+                ],
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                Text(t[16], style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 8),
+                Text(t[17]),
+                const SizedBox(height: 24),
+                Card(
+                  color: const Color(0xff183a37),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.people_outline,
+                          color: Colors.white,
+                          size: 36,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          t[18],
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          t[19],
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(t[20], style: Theme.of(context).textTheme.titleLarge),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.notifications_none),
+                    title: Text(t[21]),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(t[23]),
+              ],
+            ),
+    );
+  }
+}
+
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({
+    super.key,
+    required this.language,
+    required this.onChanged,
+  });
+  final String language;
+  final ValueChanged<String> onChanged;
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  late String language = widget.language;
+  @override
+  Widget build(BuildContext context) {
+    final t = translations[language]!;
+    return Scaffold(
+      appBar: AppBar(title: Text(t[5])),
+      body: ListView(
+        children: [
+          ListTile(
+            title: Text(t[6], style: Theme.of(context).textTheme.titleLarge),
+          ),
+          for (final option in translations.keys)
+            ListTile(
+              title: Text(option),
+              trailing: option == language ? const Icon(Icons.check) : null,
+              selected: option == language,
+              onTap: () {
+                setState(() => language = option);
+                widget.onChanged(option);
+              },
+            ),
+        ],
       ),
     );
   }
