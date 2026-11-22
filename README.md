@@ -13,7 +13,7 @@ Saathi is an Android prototype for elder check-ins and guardian follow-up. It us
 
 ## What works
 
-- **Elder mode** offers a time-of-day greeting, compact wellness overview, and a horizontally scrollable action pad.
+- **Elder mode** offers a time-of-day greeting, compact wellness overview, and a two-column action pad that scrolls vertically.
 - **Guardian mode** offers fictional profiles, six synthetic readings, and a timestamped alert history. Demo scenarios include typical readings, high blood pressure, low oxygen, and missing data.
 - **Android controls** include a first-launch notification permission request and settings links in both modes. Demo alerts create local Android notifications.
 - **Languages** include English, Tamil, Kannada, Telugu, and Malayalam for the mode picker, elder interface, and language selection. Guardian dashboard and Android demo notification copy currently use English.

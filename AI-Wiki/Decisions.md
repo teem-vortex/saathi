@@ -10,4 +10,6 @@
 
 When a standing decision changes, date the new entry, identify what it supersedes, and update the active rules in the linked notes.
 
-- 2026-11-22: The Elder home uses a horizontally scrolling two-row pad, with language settings in both modes. Guardian mode may use a richer dashboard. Care-home support is a product goal alongside family use.
+- 2026-11-22: The Elder home uses a vertically scrolling two-column pad, with language settings in both modes. Guardian mode may use a richer dashboard. Care-home support is a product goal alongside family use.
+
+- 2026-11-22: Corrected the earlier two-row layout decision. Elder actions use two columns and additional rows, scrolling vertically.

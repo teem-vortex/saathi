@@ -22,7 +22,7 @@
 
 ## Language and layout update — 2026-11-22
 
-- Elder actions use a horizontally scrollable pad with two rows and expandable columns. Each action has an icon and text. Keep settings accessible at the top right.
+- Elder actions use a vertically scrollable pad with two columns and expandable rows. Each action has an icon and text. Keep settings accessible at the top right.
 - Offer English, Tamil, Kannada, Telugu, and Malayalam in settings accessible from both modes. Apply the selected language across the app and retain the choice on the device.
 - The Guardian interface should remain straightforward while allowing a richer dashboard suited to managing multiple people.
 

@@ -353,57 +353,51 @@ class _ModePageState extends State<ModePage> {
               builder: (context, constraints) => ListView(
                 children: [
                   ElderOverview(language: language),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(t[9]),
-                  ),
-                  SizedBox(
-                    height: 380,
-                    child: GridView.builder(
-                      padding: const EdgeInsets.all(20),
-                      scrollDirection: Axis.horizontal,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 14,
-                        crossAxisSpacing: 14,
-                        mainAxisExtent: (constraints.maxWidth - 54) / 2,
-                      ),
-                      itemCount: 4,
-                      itemBuilder: (context, index) => Card(
-                        color: Colors.white,
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: () =>
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(SnackBar(content: Text(t[14]))),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  [
-                                    Icons.mic_none,
-                                    Icons.volume_up_outlined,
-                                    Icons.favorite_border,
-                                    Icons.phone_outlined,
-                                  ][index],
-                                  size: 42,
-                                  color: const Color(0xff246b60),
-                                ),
-                                const SizedBox(height: 12),
-                                Flexible(
-                                  child: Text(
-                                    t[10 + index],
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(20),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 14,
+                      crossAxisSpacing: 14,
+                      mainAxisExtent: (constraints.maxWidth - 54) / 2,
+                    ),
+                    itemCount: 4,
+                    itemBuilder: (context, index) => Card(
+                      color: Colors.white,
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () =>
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(SnackBar(content: Text(t[14]))),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                [
+                                  Icons.mic_none,
+                                  Icons.volume_up_outlined,
+                                  Icons.favorite_border,
+                                  Icons.phone_outlined,
+                                ][index],
+                                size: 42,
+                                color: const Color(0xff246b60),
+                              ),
+                              const SizedBox(height: 12),
+                              Flexible(
+                                child: Text(
+                                  t[10 + index],
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
