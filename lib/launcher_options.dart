@@ -99,7 +99,7 @@ class _LauncherSettingsState extends State<LauncherSettings> {
             ),
           ),
         ),
-        if (normal) ...[
+        if (normal)
           launcherOption(
             icon: Icons.apps,
             title: 'Choose app menu apps',
@@ -110,17 +110,16 @@ class _LauncherSettingsState extends State<LauncherSettings> {
               ),
             ),
           ),
-          launcherOption(
-            icon: Icons.add_box_outlined,
-            title: 'Add app as tile',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => AppPicker(prefs: store, pinned: true),
-              ),
+        launcherOption(
+          icon: Icons.add_box_outlined,
+          title: 'Add app as tile',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (_) => AppPicker(prefs: store, pinned: true),
             ),
           ),
-        ],
+        ),
       ],
     );
   }

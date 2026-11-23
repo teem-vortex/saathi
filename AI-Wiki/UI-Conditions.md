@@ -30,6 +30,6 @@
 
 - Give Android Home its own Flutter launcher screen. Keep the Android status bar visible and show the system wallpaper around the launcher cards and tiles.
 - Place one wide greeting and readings card above the existing two-column Elder action grid. Keep the settings gear and the controls to change the Home app. The launcher root has no app Back or mode-switch control.
-- Offer **Minimal** with the existing Elder actions and **Normal** with an **Apps** tile and optional direct app tiles. Let users show all launchable apps or a preferred subset. The app menu scrolls vertically with two columns for up to 10 visible apps and three for 11 or more.
+- Offer **Minimal** with the existing Elder actions and optional direct app tiles. **Normal** also provides an **Apps** tile. Let users show all launchable apps or a preferred subset. The app menu scrolls vertically with two columns for up to 10 visible apps and three for 11 or more.
 - Show Launcher type as a Minimal / Normal (with app menu) dropdown. Grey launcher customization until Android reports Saathi as the Home app. Tapping a grey option explains how to enable Saathi, scrolls to the Home selection control, and highlights it. Keep the Home selection control available at all times.
 - Show the system wallpaper through the Apps menu background and keep its back arrow visible.

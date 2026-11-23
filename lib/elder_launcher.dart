@@ -148,9 +148,9 @@ class _ElderLauncherState extends State<ElderLauncher>
                         ],
                       ),
                     ),
-                  if (normal)
-                    Wrap(
-                      children: [
+                  Wrap(
+                    children: [
+                      if (normal)
                         SizedBox(
                           width: (MediaQuery.sizeOf(context).width - 32) / 2,
                           child: Card(
@@ -173,19 +173,19 @@ class _ElderLauncherState extends State<ElderLauncher>
                             ),
                           ),
                         ),
-                        for (final app in pinnedApps)
-                          SizedBox(
-                            width: (MediaQuery.sizeOf(context).width - 32) / 2,
-                            child: Card(
-                              child: ListTile(
-                                leading: AppIcon(app),
-                                title: Text(app['label'] as String),
-                                onTap: () => launchSelectedApp(context, app),
-                              ),
+                      for (final app in pinnedApps)
+                        SizedBox(
+                          width: (MediaQuery.sizeOf(context).width - 32) / 2,
+                          child: Card(
+                            child: ListTile(
+                              leading: AppIcon(app),
+                              title: Text(app['label'] as String),
+                              onTap: () => launchSelectedApp(context, app),
                             ),
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
