@@ -61,28 +61,29 @@ On first use, explain and request notification permission. Both modes' settings 
 
 The Elder overview uses the fictional Meera profile and the latest scenario selected for her in Guardian mode. The overview shows a deterministic summary. Its request carries the selected app language code and flagged metrics so a future AI provider can produce a short localized summary from the same facts. The current version requires no network or API credentials.
 
-## Elder Home launcher implementation plan
+## Elder Home launcher redesign plan
 
-The launcher is an opt-in Android Home app. Its Home screen is the existing Elder UI: the localized greeting, compact readings summary, and large action blocks in two columns that scroll vertically. Use the same Flutter screen in both entry points so future Elder UI changes appear in the launcher too.
+Saathi remains one Android app with an optional Home role. Android Home will use a dedicated Flutter screen so the launcher can evolve independently of the in-app Elder UI.
 
-### Implementation order
+1. **Separate the screens.** Route the existing HomeActivity and /elderHome entry to a dedicated launcher screen in its own Dart file. Move launcher layout and navigation out of ModePage. Share saved language, greeting and readings data, shared Settings, and action handlers where behavior is common.
+2. **Show the actual Android wallpaper.** Give HomeActivity its own launch and normal themes with a transparent background and Android's windowShowWallpaper. Use Flutter's transparent activity mode and keep the Flutter launcher root and scroll area transparent. Check for solid background flashes on cold launch and return to Home. [Android wallpaper windows](https://developer.android.com/reference/android/view/WindowManager.LayoutParams#FLAG_SHOW_WALLPAPER) · [Flutter transparent activities](https://docs.flutter.dev/add-to-app/android/add-flutter-screen)
+3. **Keep the real system bars visible.** Use edge-to-edge layout with the system bars shown. Let wallpaper extend behind them and use safe insets to place controls below the status bar, away from cutouts and above the navigation controls. If needed, add a subtle gradient only behind the status icons for contrast. Verify the clock, battery and network icons, notification shade, and gesture and three-button navigation. [Android edge-to-edge](https://developer.android.com/develop/ui/views/layout/edge-to-edge)
+4. **Build the launcher layout.** Place the settings gear at the top right below the system status bar. Follow it with one wide card containing the time-of-day greeting, name, short summary, and compact reading indicators. Put the four existing icon-and-text action tiles below it in two columns and vertically scrolling rows. Give cards and tiles readable surfaces and leave the gaps and margins transparent. Allow longer translations and larger text to wrap. The launcher root has no app bar, Back button, or mode switch.
+5. **Verify navigation and recovery.** Pressing Home from another app or a nested screen returns to the launcher root. Closing Settings or Talk to Saathi returns to the launcher. The regular Saathi icon opens the mode picker. Keep Change Home app accessible through Settings and refresh the saved language and greeting when returning to Home.
 
-1. **Finalize Home navigation.** Build on the existing Android Home activity and route it straight to Elder. Use Elder as the root of its own task. Pressing Home from an app or from a nested Saathi screen returns to the Elder root. The regular Saathi icon opens the mode picker, where Guardian is available. In launcher mode, show only the Elder screen without a back or mode-switch control.
-2. **Finish the controls in Elder settings.** Provide **Use Saathi as Home** and **Change Home app** in all five supported languages. Use Android's Home role prompt for activation and its Home app picker for switching back. Read the current Home role on resume and after the prompt closes. Handle cancel, unsupported devices, and missing settings handlers with usable feedback. Make Android Settings reachable through the launcher. [Android Home role](https://developer.android.com/reference/android/app/role/RoleManager#ROLE_HOME) · [Android Home settings](https://developer.android.com/reference/android/provider/Settings#ACTION_HOME_SETTINGS)
-3. **Keep launcher content aligned with Elder mode.** Show only the existing Elder actions. The user can change the Home app in Elder settings.
-4. **Share Elder settings and state.** Both entry points use the same saved language and readings source. Refresh state on return to the launcher, including the greeting when the time period changes. Keep real health data subject to the existing privacy rules. The current app uses synthetic readings.
-5. **Verify the complete flow.** Run Flutter analysis and relevant tests, then exercise the actual Android dialogs and app launches on the API 33 emulator. Verify the Home gesture and One UI Home restoration on a physical Samsung phone before daily use. Add the setup and switch-back steps to the README once verified.
+Start with Flutter analysis and tests, then verify the Home role on the Pixel 7 Android 13 emulator. Select Saathi in Android, check bright, dark, and busy wallpapers and a live wallpaper if available, and change wallpaper while Saathi is Home. Test larger text, the five languages, safe insets, and access to all tiles. Check rotation, process restart, reboot, and switching back to Pixel Launcher. Repeat the visual and navigation checks on a newer Android image and on a Samsung device when available, including restoring One UI Home.
 
-| Check | Expected result |
-| --- | --- |
-| Choose or cancel in the Android Home picker | The user's choice takes effect and Elder settings reflect the current Home app. |
-| Press Home from another app or a nested screen | Saathi opens at the Elder greeting and two-column grid. |
-| Open Elder as Home | The Elder screen appears without a back or mode-switch control. |
-| Change language, then return to Home | The greeting, action labels, and launcher settings use the saved language. |
-| Reboot or relaunch after process loss | After unlocking, the selected Home app opens with saved settings. |
-| Switch to the original launcher | Android Home returns to Pixel Launcher or One UI Home. The regular Saathi app still opens Elder and Guardian through the mode picker. |
+The dedicated launcher, wallpaper, status bar, card, and grid are implemented locally. The Pixel 7 Android 13 emulator showed the wallpaper and system bars, opened Settings, and returned to the launcher root on Home. Broader wallpaper, accessibility, reboot, and Samsung checks are pending.
 
-The local Home activity and Elder settings entries are the starting point. The complete launcher and this acceptance checklist are still pending.
+### Launcher layouts and app shortcuts
+
+1. **Add a layout setting.** The launcher gear offers **Minimal** and **Normal**. Default existing installs to Minimal, with the greeting card and four Elder actions. Normal adds an **Apps** tile and any pinned shortcuts. Save the layout, menu filter, and pinned apps locally so they survive restarts and switching modes.
+2. **Reuse the app bridge.** Build on the existing Android LauncherApps calls and Flutter installed-app list. Display launchable apps alphabetically with their icons and names. Store choices by package and activity. Refresh on return to Home and when opening the menu or picker. Omit uninstalled apps from the visible grid and handle an app disappearing before launch.
+3. **Build the app menu and picker.** In Normal settings, **Choose app menu apps** offers **All apps** and **Selected apps**. Default the menu to All apps, which includes newly installed apps automatically. Selected apps uses a checklist and Save button. The Apps tile opens a vertically scrolling grid with two columns for up to 10 visible apps and three for 11 or more. An empty selection offers a way back to the picker.
+4. **Add direct app tiles.** In Normal settings, **Add app as tile** opens the app picker. Pinned apps appear in the two-column Home grid and open directly. The same setting lets the user remove shortcuts. Home shortcuts and app menu visibility are separate choices.
+5. **Verify on Android 13.** Test switching layouts, persistence after restart, All apps, a saved subset, and an empty result. Check the grid at 9, 10, and 11 apps. Open an app from the menu and from a pinned tile, then press Home to return. Check the five supported languages and larger text. Both layouts keep the status bar, wallpaper, and existing Elder actions.
+
+The layout selector, app menu, app picker, and pinned tiles are implemented locally. The Pixel API 33 emulator verified switching to Normal and opening the app menu. Translations and the 10/11-app boundary require further verification.
 
 ## Elder phone assistant plan
 

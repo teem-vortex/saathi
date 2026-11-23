@@ -10,6 +10,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.LauncherApps
 import android.os.Process
+import android.os.Bundle
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import java.io.ByteArrayOutputStream
+import android.view.WindowInsets
+import io.flutter.embedding.android.FlutterActivityLaunchConfigs.BackgroundMode
 import android.content.ComponentName
 import android.provider.MediaStore
 import android.provider.Settings
@@ -19,6 +25,7 @@ import io.flutter.plugin.common.MethodChannel
 
 open class MainActivity : FlutterActivity() {
     private var channel: MethodChannel? = null
+    private var homeRequestResult: MethodChannel.Result? = null
     private val alertAction = "com.example.saathi.OPEN_DEMO_ALERTS"
 
     override fun configureFlutterEngine(engine: FlutterEngine) {
@@ -34,7 +41,16 @@ open class MainActivity : FlutterActivity() {
                         val launcher = getSystemService(LauncherApps::class.java)
                         val apps = launcher.getActivityList(null, Process.myUserHandle())
                             .sortedBy { it.label.toString().lowercase() }
-                            .map { mapOf("label" to it.label.toString(), "package" to it.componentName.packageName, "activity" to it.componentName.className) }
+                            .map {
+                                val drawable = it.getBadgedIcon(resources.displayMetrics.densityDpi)
+                                val bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888)
+                                val canvas = Canvas(bitmap)
+                                drawable.setBounds(0, 0, 96, 96)
+                                drawable.draw(canvas)
+                                val output = ByteArrayOutputStream()
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)
+                                mapOf("label" to it.label.toString(), "package" to it.componentName.packageName, "activity" to it.componentName.className, "icon" to output.toByteArray())
+                            }
                         result.success(apps)
                     }
                     "launchApp" -> {
@@ -61,10 +77,21 @@ open class MainActivity : FlutterActivity() {
                     }
                     "requestHome" -> {
                         val roles = getSystemService(RoleManager::class.java)
-                        if (roles.isRoleAvailable(RoleManager.ROLE_HOME) && !roles.isRoleHeld(RoleManager.ROLE_HOME)) {
-                            startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_HOME), 2)
+                        if (roles.isRoleHeld(RoleManager.ROLE_HOME)) {
+                            result.success(true)
+                        } else if (!roles.isRoleAvailable(RoleManager.ROLE_HOME)) {
+                            result.success(false)
+                        } else if (homeRequestResult != null) {
+                            result.error("BUSY", "Home selection is already open", null)
+                        } else {
+                            try {
+                                homeRequestResult = result
+                                startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_HOME), 2)
+                            } catch (_: Exception) {
+                                homeRequestResult = null
+                                result.success(false)
+                            }
                         }
-                        result.success(null)
                     }
                     "assistantStatus" -> result.success(getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_ASSISTANT))
                     "assistantSettings" -> {
@@ -131,6 +158,15 @@ open class MainActivity : FlutterActivity() {
         }
     }
 
+    @Deprecated("Android role picker result")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 2) {
+            homeRequestResult?.success(getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME))
+            homeRequestResult = null
+        }
+    }
+
     override fun onNewIntent(intent: Intent) {
         if (intent.hasCategory(Intent.CATEGORY_HOME)) {
             channel?.invokeMethod("returnHome", null)
@@ -145,6 +181,14 @@ open class MainActivity : FlutterActivity() {
 
 class HomeActivity : MainActivity() {
     override fun getInitialRoute(): String = "/elderHome"
+
+    override fun getBackgroundMode(): BackgroundMode = BackgroundMode.transparent
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        window.setDecorFitsSystemWindows(false)
+        window.insetsController?.show(WindowInsets.Type.systemBars())
+    }
 }
 
 class AssistantActivity : MainActivity() {

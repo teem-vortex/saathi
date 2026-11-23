@@ -7,6 +7,7 @@
 | 2026-11-22 | Build approved pairing and a two-device callback as the first AWS milestone. | This defines the implementation order. No AWS deployment is part of the preview. |
 | 2026-11-22 | Keep the Obsidian AI wiki and Codex maintainer skill in Git. | Clones share project rules, design decisions, and verification history. |
 | 2026-11-22 | Use Health Connect as Saathi’s primary wearable data integration. | Test with labeled synthetic data and Health Connect Toolbox before validating real watch sync. |
+| 2026-11-23 | Give Android Home a dedicated launcher screen. | Replaces the shared Elder screen plan. Keep the status bar visible and show wallpaper around the greeting card and action tiles. |
 
 When a standing decision changes, date the new entry, identify what it supersedes, and update the active rules in the linked notes.
 

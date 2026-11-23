@@ -1,3 +1,5 @@
+import 'launcher_options.dart';
+import 'elder_launcher.dart';
 import 'elder_overview.dart';
 import 'launcher_apps.dart';
 import 'guardian_demo.dart';
@@ -198,6 +200,9 @@ class _SaathiAppState extends State<SaathiApp> {
   @override
   Widget build(BuildContext context) {
     final text = translations[language]!;
+    final platformRoute =
+        WidgetsBinding.instance.platformDispatcher.defaultRouteName;
+    final isLauncher = platformRoute == '/elderHome';
     return MaterialApp(
       title: 'Saathi',
       navigatorKey: navigator,
@@ -207,51 +212,54 @@ class _SaathiAppState extends State<SaathiApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff246b60)),
         scaffoldBackgroundColor: const Color(0xfff7f6f0),
       ),
-      initialRoute: WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+      initialRoute: isLauncher ? '/' : platformRoute,
       onGenerateRoute: (settings) {
         if (settings.name == '/assistant') {
           return MaterialPageRoute<void>(builder: (_) => const AssistantPage());
         }
-        if (settings.name == '/elderHome') {
-          return MaterialPageRoute<void>(
-            builder: (_) => ModePage(
-              elder: true,
-              launcher: true,
-              language: language,
-              onChanged: (value) {
-                setState(() => language = value);
-                widget.preferences?.setString('language', value);
-              },
-            ),
-          );
-        }
         return null;
       },
-      home: Builder(
-        builder: (context) {
-          void openSettings() => Navigator.push(
-            context,
-            MaterialPageRoute<void>(
-              builder: (_) => SettingsPage(
-                language: language,
-                onChanged: (value) async {
-                  setState(() => language = value);
-                  await widget.preferences?.setString('language', value);
-                },
+      home: isLauncher
+          ? ElderLauncher(
+              preferences: widget.preferences,
+              labelsFor: (language) => translations[language]!,
+              openSettings: (context, language, onChanged) => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => SettingsPage(
+                    language: language,
+                    showHomeSettings: true,
+                    onChanged: onChanged,
+                  ),
+                ),
               ),
+              openAction: openElderAction,
+            )
+          : Builder(
+              builder: (context) {
+                void openSettings() => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => SettingsPage(
+                      language: language,
+                      onChanged: (value) async {
+                        setState(() => language = value);
+                        await widget.preferences?.setString('language', value);
+                      },
+                    ),
+                  ),
+                );
+                return ModePicker(
+                  text: text,
+                  openSettings: openSettings,
+                  language: language,
+                  onChanged: (value) async {
+                    setState(() => language = value);
+                    await widget.preferences?.setString('language', value);
+                  },
+                );
+              },
             ),
-          );
-          return ModePicker(
-            text: text,
-            openSettings: openSettings,
-            language: language,
-            onChanged: (value) async {
-              setState(() => language = value);
-              await widget.preferences?.setString('language', value);
-            },
-          );
-        },
-      ),
     );
   }
 }
@@ -334,9 +342,7 @@ class ModePage extends StatefulWidget {
     required this.elder,
     required this.language,
     required this.onChanged,
-    this.launcher = false,
   });
-  final bool launcher;
   final bool elder;
   final String language;
   final ValueChanged<String> onChanged;
@@ -351,7 +357,6 @@ class _ModePageState extends State<ModePage> {
     final t = translations[language]!;
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: !widget.launcher,
         title: Text(widget.elder ? 'Saathi' : t[15]),
         actions: [
           IconButton(
@@ -371,11 +376,10 @@ class _ModePageState extends State<ModePage> {
               ),
             ),
           ),
-          if (!widget.launcher)
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(t[7]),
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(t[7]),
+          ),
         ],
       ),
       body: widget.elder
@@ -398,19 +402,7 @@ class _ModePageState extends State<ModePage> {
                       color: Colors.white,
                       clipBehavior: Clip.antiAlias,
                       child: InkWell(
-                        onTap: () {
-                          if (index == 0) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute<void>(
-                                builder: (_) => const AssistantPage(),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(content: Text(t[14])));
-                          }
-                        },
+                        onTap: () => openElderAction(context, index, t[14]),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Column(
@@ -473,6 +465,8 @@ class _SettingsPageState extends State<SettingsPage>
     with WidgetsBindingObserver {
   late String language = widget.language;
   bool isHome = false;
+  bool highlightHome = false;
+  final homeKey = GlobalKey();
   bool isAssistant = false;
 
   @override
@@ -540,6 +534,27 @@ class _SettingsPageState extends State<SettingsPage>
             ),
           ),
           if (widget.showHomeSettings) ...[
+            LauncherSettings(
+              enabled: isHome,
+              onDisabledTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Choose Use Saathi as Home to enable launcher settings.',
+                    ),
+                  ),
+                );
+                setState(() => highlightHome = true);
+                final target = homeKey.currentContext;
+                if (target != null) {
+                  Scrollable.ensureVisible(
+                    target,
+                    alignment: 0.5,
+                    duration: const Duration(milliseconds: 350),
+                  );
+                }
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.mic_none),
               title: Text(
@@ -570,6 +585,10 @@ class _SettingsPageState extends State<SettingsPage>
               },
             ),
             ListTile(
+              key: homeKey,
+              tileColor: highlightHome && !isHome
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : null,
               leading: const Icon(Icons.home_outlined),
               title: Text(launcherLabels[language]![6]),
               subtitle: Text(
@@ -578,14 +597,37 @@ class _SettingsPageState extends State<SettingsPage>
                     : launcherLabels[language]![9],
               ),
               onTap: () async {
-                await androidControls.invokeMethod<void>('requestHome');
+                await androidControls.invokeMethod<bool>('requestHome');
                 await refreshHome();
+                if (mounted && isHome) setState(() => highlightHome = false);
               },
             ),
             ListTile(
               leading: const Icon(Icons.swap_horiz),
               title: Text(launcherLabels[language]![7]),
-              onTap: () => androidControls.invokeMethod<void>('homeSettings'),
+              enabled: true,
+              textColor: isHome ? null : Theme.of(context).disabledColor,
+              iconColor: isHome ? null : Theme.of(context).disabledColor,
+              onTap: isHome
+                  ? () => androidControls.invokeMethod<void>('homeSettings')
+                  : () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Choose Use Saathi as Home to enable launcher settings.',
+                          ),
+                        ),
+                      );
+                      setState(() => highlightHome = true);
+                      final target = homeKey.currentContext;
+                      if (target != null) {
+                        Scrollable.ensureVisible(
+                          target,
+                          alignment: 0.5,
+                          duration: const Duration(milliseconds: 350),
+                        );
+                      }
+                    },
             ),
           ],
           ListTile(
@@ -645,4 +687,16 @@ class AssistantPage extends StatelessWidget {
       ),
     ),
   );
+}
+
+void openElderAction(BuildContext context, int index, String previewLabel) {
+  if (index == 0) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(builder: (_) => const AssistantPage()),
+    );
+  } else {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(previewLabel)));
+  }
 }

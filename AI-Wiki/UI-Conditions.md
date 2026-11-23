@@ -28,6 +28,8 @@
 
 - Place a compact, localized time-of-day greeting and readings summary above the Elder action pad. Use checks for in-range demo readings, a red warning triangle for a flagged reading, and a dash for unavailable data.
 
-- When Saathi is the Android Home app, reuse the Elder greeting, readings summary, and vertically scrolling two-column action grid. Keep the Home app controls in Elder settings.
-
-- In launcher mode show only the Elder screen and its existing actions. Keep Elder settings available to change the default Home app.
+- Give Android Home its own Flutter launcher screen. Keep the Android status bar visible and show the system wallpaper around the launcher cards and tiles.
+- Place one wide greeting and readings card above the existing two-column Elder action grid. Keep the settings gear and the controls to change the Home app. The launcher root has no app Back or mode-switch control.
+- Offer **Minimal** with the existing Elder actions and **Normal** with an **Apps** tile and optional direct app tiles. Let users show all launchable apps or a preferred subset. The app menu scrolls vertically with two columns for up to 10 visible apps and three for 11 or more.
+- Show Launcher type as a Minimal / Normal (with app menu) dropdown. Grey launcher customization until Android reports Saathi as the Home app. Tapping a grey option explains how to enable Saathi, scrolls to the Home selection control, and highlights it. Keep the Home selection control available at all times.
+- Show the system wallpaper through the Apps menu background and keep its back arrow visible.
