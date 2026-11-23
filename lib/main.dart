@@ -1,4 +1,5 @@
 import 'elder_overview.dart';
+import 'launcher_apps.dart';
 import 'guardian_demo.dart';
 
 import 'package:material_ui/material_ui.dart';
@@ -159,6 +160,9 @@ class _SaathiAppState extends State<SaathiApp> {
     if (widget.preferences == null) return;
     androidControls.setMethodCallHandler((call) async {
       if (call.method == 'openAlerts') openAlerts();
+      if (call.method == 'returnHome') {
+        navigator.currentState?.popUntil((route) => route.isFirst);
+      }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (await androidControls.invokeMethod<bool>('consumeAlert') == true) {
@@ -202,6 +206,27 @@ class _SaathiAppState extends State<SaathiApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff246b60)),
         scaffoldBackgroundColor: const Color(0xfff7f6f0),
       ),
+      initialRoute:
+          WidgetsBinding.instance.platformDispatcher.defaultRouteName ==
+              '/elderHome'
+          ? '/elderHome'
+          : '/',
+      onGenerateRoute: (settings) {
+        if (settings.name == '/elderHome') {
+          return MaterialPageRoute<void>(
+            builder: (_) => ModePage(
+              elder: true,
+              launcher: true,
+              language: language,
+              onChanged: (value) {
+                setState(() => language = value);
+                widget.preferences?.setString('language', value);
+              },
+            ),
+          );
+        }
+        return null;
+      },
       home: Builder(
         builder: (context) {
           void openSettings() => Navigator.push(
@@ -309,7 +334,9 @@ class ModePage extends StatefulWidget {
     required this.elder,
     required this.language,
     required this.onChanged,
+    this.launcher = false,
   });
+  final bool launcher;
   final bool elder;
   final String language;
   final ValueChanged<String> onChanged;
@@ -324,6 +351,7 @@ class _ModePageState extends State<ModePage> {
     final t = translations[language]!;
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !widget.launcher,
         title: Text(widget.elder ? 'Saathi' : t[15]),
         actions: [
           IconButton(
@@ -334,6 +362,7 @@ class _ModePageState extends State<ModePage> {
               MaterialPageRoute<void>(
                 builder: (_) => SettingsPage(
                   language: language,
+                  showHomeSettings: widget.elder,
                   onChanged: (value) {
                     setState(() => language = value);
                     widget.onChanged(value);
@@ -342,10 +371,11 @@ class _ModePageState extends State<ModePage> {
               ),
             ),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(t[7]),
-          ),
+          if (!widget.launcher)
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(t[7]),
+            ),
         ],
       ),
       body: widget.elder
@@ -420,15 +450,50 @@ class SettingsPage extends StatefulWidget {
     super.key,
     required this.language,
     required this.onChanged,
+    this.showHomeSettings = false,
   });
   final String language;
   final ValueChanged<String> onChanged;
+  final bool showHomeSettings;
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsPageState extends State<SettingsPage>
+    with WidgetsBindingObserver {
   late String language = widget.language;
+  bool isHome = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    if (widget.showHomeSettings) refreshHome();
+  }
+
+  Future<void> refreshHome() async {
+    try {
+      final value =
+          await androidControls.invokeMethod<bool>('homeStatus') ?? false;
+      if (mounted) setState(() => isHome = value);
+    } catch (_) {
+      if (mounted) setState(() => isHome = false);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && widget.showHomeSettings) {
+      refreshHome();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = translations[language]!;
@@ -436,9 +501,46 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(title: Text(t[5])),
       body: ListView(
         children: [
-          ListTile(
-            title: Text(t[6], style: Theme.of(context).textTheme.titleLarge),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: DropdownButtonFormField<String>(
+              key: ValueKey(language),
+              initialValue: language,
+              decoration: InputDecoration(
+                labelText: t[6],
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                for (final option in translations.keys)
+                  DropdownMenuItem(value: option, child: Text(option)),
+              ],
+              onChanged: (option) {
+                if (option == null) return;
+                setState(() => language = option);
+                widget.onChanged(option);
+              },
+            ),
           ),
+          if (widget.showHomeSettings) ...[
+            ListTile(
+              leading: const Icon(Icons.home_outlined),
+              title: Text(launcherLabels[language]![6]),
+              subtitle: Text(
+                isHome
+                    ? launcherLabels[language]![8]
+                    : launcherLabels[language]![9],
+              ),
+              onTap: () async {
+                await androidControls.invokeMethod<void>('requestHome');
+                await refreshHome();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.swap_horiz),
+              title: Text(launcherLabels[language]![7]),
+              onTap: () => androidControls.invokeMethod<void>('homeSettings'),
+            ),
+          ],
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
             title: const Text('Notification settings'),
@@ -450,16 +552,6 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Battery optimization'),
             onTap: () => androidControls.invokeMethod<void>('batterySettings'),
           ),
-          for (final option in translations.keys)
-            ListTile(
-              title: Text(option),
-              trailing: option == language ? const Icon(Icons.check) : null,
-              selected: option == language,
-              onTap: () {
-                setState(() => language = option);
-                widget.onChanged(option);
-              },
-            ),
         ],
       ),
     );

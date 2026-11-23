@@ -3,7 +3,7 @@
 ## Mode selection
 
 - Offer **Elder mode** and **Guardian mode** on the opening screen. During the UI preview, tapping a mode opens it directly.
-- Keep a visible **Switch mode** control and standard Android back navigation on both mode screens.
+- Keep a visible **Switch mode** control and standard Android back navigation when the app is opened normally. When opened as the Home launcher, show the Elder screen without a back or mode-switch control.
 
 ## Elder mode
 
@@ -27,3 +27,7 @@
 - The Guardian interface should remain straightforward while allowing a richer dashboard suited to managing multiple people.
 
 - Place a compact, localized time-of-day greeting and readings summary above the Elder action pad. Use checks for in-range demo readings, a red warning triangle for a flagged reading, and a dash for unavailable data.
+
+- When Saathi is the Android Home app, reuse the Elder greeting, readings summary, and vertically scrolling two-column action grid. Keep the Home app controls in Elder settings.
+
+- In launcher mode show only the Elder screen and its existing actions. Keep Elder settings available to change the default Home app.

@@ -60,3 +60,26 @@ On first use, explain and request notification permission. Both modes' settings 
 ### Elder summary demo
 
 The Elder overview uses the fictional Meera profile and the latest scenario selected for her in Guardian mode. The overview shows a deterministic summary. Its request carries the selected app language code and flagged metrics so a future AI provider can produce a short localized summary from the same facts. The current version requires no network or API credentials.
+
+## Elder Home launcher implementation plan
+
+The launcher is an opt-in Android Home app. Its Home screen is the existing Elder UI: the localized greeting, compact readings summary, and large action blocks in two columns that scroll vertically. Use the same Flutter screen in both entry points so future Elder UI changes appear in the launcher too.
+
+### Implementation order
+
+1. **Finalize Home navigation.** Build on the existing Android Home activity and route it straight to Elder. Use Elder as the root of its own task. Pressing Home from an app or from a nested Saathi screen returns to the Elder root. The regular Saathi icon opens the mode picker, where Guardian is available. In launcher mode, show only the Elder screen without a back or mode-switch control.
+2. **Finish the controls in Elder settings.** Provide **Use Saathi as Home** and **Change Home app** in all five supported languages. Use Android's Home role prompt for activation and its Home app picker for switching back. Read the current Home role on resume and after the prompt closes. Handle cancel, unsupported devices, and missing settings handlers with usable feedback. Make Android Settings reachable through the launcher. [Android Home role](https://developer.android.com/reference/android/app/role/RoleManager#ROLE_HOME) · [Android Home settings](https://developer.android.com/reference/android/provider/Settings#ACTION_HOME_SETTINGS)
+3. **Keep launcher content aligned with Elder mode.** Show only the existing Elder actions. The user can change the Home app in Elder settings.
+4. **Share Elder settings and state.** Both entry points use the same saved language and readings source. Refresh state on return to the launcher, including the greeting when the time period changes. Keep real health data subject to the existing privacy rules. The current app uses synthetic readings.
+5. **Verify the complete flow.** Run Flutter analysis and relevant tests, then exercise the actual Android dialogs and app launches on the API 33 emulator. Verify the Home gesture and One UI Home restoration on a physical Samsung phone before daily use. Add the setup and switch-back steps to the README once verified.
+
+| Check | Expected result |
+| --- | --- |
+| Choose or cancel in the Android Home picker | The user's choice takes effect and Elder settings reflect the current Home app. |
+| Press Home from another app or a nested screen | Saathi opens at the Elder greeting and two-column grid. |
+| Open Elder as Home | The Elder screen appears without a back or mode-switch control. |
+| Change language, then return to Home | The greeting, action labels, and launcher settings use the saved language. |
+| Reboot or relaunch after process loss | After unlocking, the selected Home app opens with saved settings. |
+| Switch to the original launcher | Android Home returns to Pixel Launcher or One UI Home. The regular Saathi app still opens Elder and Guardian through the mode picker. |
+
+The local Home activity and Elder settings entries are the starting point. The complete launcher and this acceptance checklist are still pending.
