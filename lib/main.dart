@@ -1,8 +1,13 @@
 import 'launcher_options.dart';
 import 'elder_launcher.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'elder_overview.dart';
 import 'launcher_apps.dart';
 import 'guardian_demo.dart';
+import 'voice_draft.dart';
+import 'connections.dart';
+import 'push_notifications.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +15,15 @@ import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  const url = String.fromEnvironment('SUPABASE_URL');
+  const key = String.fromEnvironment('SUPABASE_ANON_KEY');
+  if (url.isNotEmpty && key.isNotEmpty) {
+    await Supabase.initialize(url: url, publishableKey: key);
+    await initializePush();
+    if (Supabase.instance.client.auth.currentUser != null) {
+      try { await registerPush(); } catch (_) { /* Available again on sign-in. */ }
+    }
+  }
   final preferences = await SharedPreferences.getInstance();
   runApp(SaathiApp(preferences: preferences));
 }
@@ -160,7 +174,7 @@ class _SaathiAppState extends State<SaathiApp> {
   @override
   void initState() {
     super.initState();
-    if (widget.preferences == null) return;
+    if (kIsWeb || widget.preferences == null) return;
     androidControls.setMethodCallHandler((call) async {
       if (call.method == 'openAlerts') openAlerts();
       if (call.method == 'returnHome') {
@@ -188,7 +202,7 @@ class _SaathiAppState extends State<SaathiApp> {
 
   @override
   void dispose() {
-    if (widget.preferences != null) androidControls.setMethodCallHandler(null);
+    if (!kIsWeb && widget.preferences != null) androidControls.setMethodCallHandler(null);
     super.dispose();
   }
 
@@ -360,6 +374,13 @@ class _ModePageState extends State<ModePage> {
         title: Text(widget.elder ? 'Saathi' : t[15]),
         actions: [
           IconButton(
+            tooltip: 'Saathi connections',
+            icon: const Icon(Icons.link),
+            onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
+              builder: (_) => ConnectionsPage(elder: widget.elder),
+            )),
+          ),
+          IconButton(
             tooltip: t[5],
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => Navigator.push(
@@ -402,7 +423,20 @@ class _ModePageState extends State<ModePage> {
                       color: Colors.white,
                       clipBehavior: Clip.antiAlias,
                       child: InkWell(
-                        onTap: () => openElderAction(context, index, t[14]),
+                        onTap: () {
+                          if (index == 0) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    VoiceDraftPage(language: language),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(SnackBar(content: Text(t[14])));
+                          }
+                        },
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Column(
@@ -630,13 +664,13 @@ class _SettingsPageState extends State<SettingsPage>
                     },
             ),
           ],
-          ListTile(
+          if (!kIsWeb) ListTile(
             leading: const Icon(Icons.notifications_outlined),
             title: const Text('Notification settings'),
             onTap: () =>
                 androidControls.invokeMethod<void>('notificationSettings'),
           ),
-          ListTile(
+          if (!kIsWeb) ListTile(
             leading: const Icon(Icons.battery_saver_outlined),
             title: const Text('Battery optimization'),
             onTap: () => androidControls.invokeMethod<void>('batterySettings'),

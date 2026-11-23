@@ -16,6 +16,7 @@ Saathi is an Android prototype for elder check-ins and guardian follow-up. It us
 - **Elder mode** offers a time-of-day greeting, compact wellness overview, and a two-column action pad that scrolls vertically.
 - **Guardian mode** offers fictional profiles, six synthetic readings, and a timestamped alert history. Demo scenarios include typical readings, high blood pressure, low oxygen, and missing data.
 - **Android controls** include a first-launch notification permission request and settings links in both modes. Demo alerts create local Android notifications.
+- **Voice draft** transcribes speech or accepts typed text, reads the draft aloud, and sends it to an accepted Saathi guardian through the app backend when configured.
 - **Languages** include English, Tamil, Kannada, Telugu, and Malayalam for the mode picker, elder interface, and language selection. Guardian dashboard and Android demo notification copy currently use English.
 
 ## Setup
@@ -37,9 +38,38 @@ flutter run
 3. Open **Alerts** to see the simulated reading and its recorded time.
 4. Return to the mode picker and open **Elder mode** to see Meera’s corresponding summary and warning icon. Use **Typical** in Meera’s guardian profile to restore the default demo state.
 
-The readings and alert rules are for demonstration. Elder action buttons are previews.
+The readings and alert rules are for demonstration. Cross-device messaging requires the Supabase migration and authenticated users.
 
 ## Development
+
+The in-app messaging MVP requires a Supabase project with the migration in
+`supabase/migrations` applied. Supply `SUPABASE_URL` and `SUPABASE_ANON_KEY`
+as Flutter `--dart-define` values. Use only a Supabase publishable/anon key in
+the app, never the service-role key. Each user creates an email account. The
+guardian creates a code, the elder enters it, and the guardian accepts the
+request before a message can be sent. Refresh the Messages screen to see updates.
+
+Android push additionally requires Firebase project configuration through the
+`FIREBASE_API_KEY`, `FIREBASE_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID`, and
+`FIREBASE_PROJECT_ID` Flutter defines. Deploy `supabase/functions/notify-message`
+and configure its `FIREBASE_SERVICE_ACCOUNT` secret in the trusted Supabase
+environment. Never place a Firebase service account in the app or repository.
+This integration is unverified until a configured project and two devices are
+available. Push is currently requested by the sending client after the message
+is saved, so interruption between those steps can leave a message without a
+notification. The recipient can still refresh Messages.
+
+For a local Android build, download `google-services.json` for package
+`com.example.saathi` from Firebase and place it at `android/app/google-services.json`.
+The file is ignored by Git. Then set the Supabase publishable key and run:
+
+```powershell
+$env:SUPABASE_ANON_KEY = '<your Supabase publishable/anon key>'
+.\tool\build_mvp.ps1
+```
+
+The Firebase project supplies push delivery only. Supabase remains the account,
+pairing, message, and token database for this MVP.
 
 ```sh
 dart format lib test

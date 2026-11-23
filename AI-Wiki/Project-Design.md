@@ -7,6 +7,8 @@ Saathi helps older adults send check-ins and ask family for a callback while con
 - The published baseline is a Flutter Android starter app with `minSdk = 33`.
 - At wiki creation, a mode picker, Elder home, and Guardian dashboard were implemented and verified in the local working tree. Check the current branch for availability. The Elder actions show a preview message and the Guardian dashboard shows an empty state.
 - Phone verification, family pairing, live device-to-device communication, AWS, push notifications, and voice integration are planned.
+- Local voice draft (work in progress): the Elder can use Android speech recognition or type, then request text-to-speech. It does not send a message. Speech recognition can use a network service; availability and language support depend on the device. Cross-device delivery and push remain unimplemented.
+- The requested messaging flow links verified Saathi users with their consent and sends in-app notifications to the linked guardian. The previous SMS and Phone Link handoff has been removed. Phone verification, pairing, message delivery and remote push are still to be implemented.
 
 ## Planned sequence
 

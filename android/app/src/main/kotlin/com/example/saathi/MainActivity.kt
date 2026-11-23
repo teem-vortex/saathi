@@ -7,6 +7,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.ActivityNotFoundException
 import android.content.pm.PackageManager
 import android.content.pm.LauncherApps
 import android.os.Process
@@ -19,6 +20,9 @@ import io.flutter.embedding.android.FlutterActivityLaunchConfigs.BackgroundMode
 import android.content.ComponentName
 import android.provider.MediaStore
 import android.provider.Settings
+import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
+import java.util.Locale
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -27,6 +31,9 @@ open class MainActivity : FlutterActivity() {
     private var channel: MethodChannel? = null
     private var homeRequestResult: MethodChannel.Result? = null
     private val alertAction = "com.example.saathi.OPEN_DEMO_ALERTS"
+    private var speechResult: MethodChannel.Result? = null
+    private var textToSpeech: TextToSpeech? = null
+    private var ttsReady = false
 
     override fun configureFlutterEngine(engine: FlutterEngine) {
         super.configureFlutterEngine(engine)
@@ -108,6 +115,42 @@ open class MainActivity : FlutterActivity() {
                         else startActivity(Intent(Settings.ACTION_SETTINGS))
                         result.success(null)
                     }
+                    "listen" -> {
+                        if (speechResult != null) {
+                            result.error("busy", "Speech recognition is already open", null)
+                        } else {
+                            val listen = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                putExtra(RecognizerIntent.EXTRA_LANGUAGE, call.argument<String>("language") ?: "en-IN")
+                                putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak your message")
+                            }
+                            try {
+                                speechResult = result
+                                @Suppress("DEPRECATION")
+                                startActivityForResult(listen, 2201)
+                            } catch (_: ActivityNotFoundException) {
+                                speechResult = null
+                                result.error("unavailable", "Speech recognition is not available on this device", null)
+                            }
+                        }
+                    }
+                    "speak" -> {
+                        if (!ttsReady) {
+                            result.error("unavailable", "Text-to-speech is not ready", null)
+                        } else {
+                            val locale = Locale.forLanguageTag(call.argument<String>("language") ?: "en-IN")
+                            val engine = textToSpeech!!
+                            val supported = engine.setLanguage(locale)
+                            if (supported == TextToSpeech.LANG_MISSING_DATA || supported == TextToSpeech.LANG_NOT_SUPPORTED) {
+                                result.error("language_unavailable", "This voice language is not installed", null)
+                            } else {
+                                val status = engine.speak(call.argument<String>("text") ?: "", TextToSpeech.QUEUE_FLUSH, null, "saathi")
+                                if (status == TextToSpeech.ERROR) result.error("speech_failed", "Could not speak this message", null)
+                                else result.success(null)
+                            }
+                        }
+                    }
+                    "stopSpeaking" -> { textToSpeech?.stop(); result.success(null) }
                     "consumeAlert" -> {
                         val open = intent.action == alertAction
                         if (open) intent.action = null
@@ -156,6 +199,26 @@ open class MainActivity : FlutterActivity() {
                 }
             }
         }
+        textToSpeech = TextToSpeech(this) { status -> ttsReady = status == TextToSpeech.SUCCESS }
+    }
+
+    @Deprecated("Deprecated in Android")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 2201) {
+            val pending = speechResult
+            speechResult = null
+            val words = if (resultCode == RESULT_OK) data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull() else null
+            pending?.success(words)
+        }
+    }
+
+    override fun onDestroy() {
+        speechResult?.error("cancelled", "Speech recognition was interrupted", null)
+        speechResult = null
+        textToSpeech?.stop()
+        textToSpeech?.shutdown()
+        super.onDestroy()
     }
 
     @Deprecated("Android role picker result")

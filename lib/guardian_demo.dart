@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
@@ -92,7 +93,7 @@ class _DemoReadingsState extends State<DemoReadings> {
       if (!await preferences.setStringList(_alertKey, alerts)) {
         throw StateError('Could not save alert');
       }
-      final shown = await androidControls.invokeMethod<bool>('notify') ?? false;
+      final shown = !kIsWeb && (await androidControls.invokeMethod<bool>('notify') ?? false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
