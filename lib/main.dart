@@ -4,6 +4,7 @@ import 'guardian_demo.dart';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -206,12 +207,11 @@ class _SaathiAppState extends State<SaathiApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff246b60)),
         scaffoldBackgroundColor: const Color(0xfff7f6f0),
       ),
-      initialRoute:
-          WidgetsBinding.instance.platformDispatcher.defaultRouteName ==
-              '/elderHome'
-          ? '/elderHome'
-          : '/',
+      initialRoute: WidgetsBinding.instance.platformDispatcher.defaultRouteName,
       onGenerateRoute: (settings) {
+        if (settings.name == '/assistant') {
+          return MaterialPageRoute<void>(builder: (_) => const AssistantPage());
+        }
         if (settings.name == '/elderHome') {
           return MaterialPageRoute<void>(
             builder: (_) => ModePage(
@@ -398,9 +398,19 @@ class _ModePageState extends State<ModePage> {
                       color: Colors.white,
                       clipBehavior: Clip.antiAlias,
                       child: InkWell(
-                        onTap: () =>
+                        onTap: () {
+                          if (index == 0) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) => const AssistantPage(),
+                              ),
+                            );
+                          } else {
                             ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(content: Text(t[14]))),
+                                .showSnackBar(SnackBar(content: Text(t[14])));
+                          }
+                        },
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Column(
@@ -463,6 +473,7 @@ class _SettingsPageState extends State<SettingsPage>
     with WidgetsBindingObserver {
   late String language = widget.language;
   bool isHome = false;
+  bool isAssistant = false;
 
   @override
   void initState() {
@@ -475,7 +486,14 @@ class _SettingsPageState extends State<SettingsPage>
     try {
       final value =
           await androidControls.invokeMethod<bool>('homeStatus') ?? false;
-      if (mounted) setState(() => isHome = value);
+      final assistant =
+          await androidControls.invokeMethod<bool>('assistantStatus') ?? false;
+      if (mounted) {
+        setState(() {
+          isHome = value;
+          isAssistant = assistant;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => isHome = false);
     }
@@ -523,6 +541,35 @@ class _SettingsPageState extends State<SettingsPage>
           ),
           if (widget.showHomeSettings) ...[
             ListTile(
+              leading: const Icon(Icons.mic_none),
+              title: Text(
+                isAssistant
+                    ? 'Change phone assistant'
+                    : 'Use Saathi as phone assistant',
+              ),
+              subtitle: Text(
+                isAssistant
+                    ? 'Saathi is your phone assistant'
+                    : 'Choose Saathi in Android default apps',
+              ),
+              onTap: () async {
+                final opened =
+                    await androidControls.invokeMethod<bool>(
+                      'assistantSettings',
+                    ) ??
+                    false;
+                if (!opened && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Open Android Settings and choose Default apps, then Digital assistant app.',
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.home_outlined),
               title: Text(launcherLabels[language]![6]),
               subtitle: Text(
@@ -556,4 +603,46 @@ class _SettingsPageState extends State<SettingsPage>
       ),
     );
   }
+}
+
+class AssistantPage extends StatelessWidget {
+  const AssistantPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Talk to Saathi')),
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.mic_off_outlined, size: 80),
+            const SizedBox(height: 20),
+            Text(
+              'Voice assistant is not connected yet',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Voice conversations will be available after setup.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  SystemNavigator.pop();
+                }
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

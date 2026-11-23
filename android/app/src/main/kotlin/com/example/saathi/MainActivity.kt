@@ -66,6 +66,14 @@ open class MainActivity : FlutterActivity() {
                         }
                         result.success(null)
                     }
+                    "assistantStatus" -> result.success(getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_ASSISTANT))
+                    "assistantSettings" -> {
+                        val settings = Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
+                        try {
+                            startActivity(settings)
+                            result.success(true)
+                        } catch (_: Exception) { result.success(false) }
+                    }
                     "homeStatus" -> result.success(getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME))
                     "homeSettings" -> {
                         val home = Intent(Settings.ACTION_HOME_SETTINGS)
@@ -137,4 +145,8 @@ open class MainActivity : FlutterActivity() {
 
 class HomeActivity : MainActivity() {
     override fun getInitialRoute(): String = "/elderHome"
+}
+
+class AssistantActivity : MainActivity() {
+    override fun getInitialRoute(): String = "/assistant"
 }

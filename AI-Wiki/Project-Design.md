@@ -13,7 +13,7 @@ Saathi helps older adults send check-ins and ask family for a callback while con
 1. Refine the role picker, Elder home, Guardian dashboard, and callback confirmation. Walk through a mock callback before integrating services.
 2. Set up Cognito for authentication and DynamoDB for storage. Add Lambda handlers behind API Gateway. Connect the Flutter screens and verify approved pairing and the callback flow on two devices.
 3. Add check-ins and family messages. Add Firebase Cloud Messaging with generic notification text and fetch sensitive details through the authenticated app.
-4. Add voice controls and an optional Android assistant shortcut. Verify offline retries, revocation, and voice behavior on supported devices.
+4. Add voice controls and optional default Android assistant support. See the [Elder phone assistant plan](#elder-phone-assistant-plan).
 
 ## Callback flow
 
@@ -83,3 +83,14 @@ The launcher is an opt-in Android Home app. Its Home screen is the existing Elde
 | Switch to the original launcher | Android Home returns to Pixel Launcher or One UI Home. The regular Saathi app still opens Elder and Guardian through the mode picker. |
 
 The local Home activity and Elder settings entries are the starting point. The complete launcher and this acceptance checklist are still pending.
+
+## Elder phone assistant plan
+
+**User flow.** Elder Settings offers **Use Saathi as phone assistant** and shows whether Saathi is selected. The button opens Android's Default apps settings so the user can choose Saathi under the digital assistant setting. **Change phone assistant** opens the same settings to switch back. Refresh the status from Android when Elder Settings resumes. Provide manual steps if the settings screen cannot be opened. The assistant and Home roles are independent.
+
+1. **Register a dedicated assistant entry in Kotlin.** Start with an activity that handles `ACTION_ASSIST` and opens directly to a shared Elder voice screen. Verify the real system shortcut on the API 33 Pixel emulator and a Samsung phone. If the activity route fails to receive a supported shortcut on a target phone, evaluate `VoiceInteractionService` and `VoiceInteractionSessionService` before settling on the entry point. Keep assistant invocation separate from the normal app and Home entry points. [Android assistant role](https://developer.android.com/reference/androidx/core/role/RoleManagerCompat#ROLE_ASSISTANT) · [VoiceInteractionService](https://developer.android.com/reference/android/service/voice/VoiceInteractionService)
+2. **Reuse the voice screen.** Route both **Talk to Saathi** and the Android shortcut to the same Flutter UI. Use the saved Elder language and large controls. Show connecting, listening, speaking, and unavailable states with text and a simple mic animation. Provide a prominent **Stop** control. Closing the session should return the user to the previous screen and release the microphone. Coalesce repeated invocations into one session.
+3. **Connect ElevenLabs when the voice backend is ready.** Use the Kotlin SDK through the existing Flutter-to-Android bridge. Request microphone permission when the user starts voice, use a short-lived token from the backend, and keep the API key on the server. Test first with synthetic summaries. Require unlocking before opening a voice session from the lock screen. Keep requests that share data or send callbacks behind the existing confirmation and authorization rules. Always-listening wake words are a separate follow-up. [ElevenLabs Android SDK](https://elevenlabs.io/docs/eleven-agents/libraries/kotlin)
+4. **Verify both roles.** On the Pixel API 33 emulator, test selecting and canceling in Android settings, system invocation from another app, stopping, external changes to the default, and switching back. Check behavior when the microphone is denied, the device is locked, the network is offline, or the process restarts. Repeat shortcut and switch-back checks on a physical Samsung phone because the assigned gesture or button depends on the device. Verify Saathi works both with and without its Elder launcher selected. Use a physical device to confirm audio and language behavior.
+
+Status: assistant activity, Elder Settings control, and a shared unavailable voice screen are implemented locally. ElevenLabs voice, translated labels, system shortcut selection, lock-screen behavior, and Samsung verification remain pending. The Android 13 emulator resolved and explicitly launched the assistant activity.
