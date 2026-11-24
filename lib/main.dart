@@ -399,6 +399,7 @@ class ModePage extends StatefulWidget {
 
 class _ModePageState extends State<ModePage> {
   late String language = widget.language;
+  int dashboardRevision = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -410,20 +411,25 @@ class _ModePageState extends State<ModePage> {
           IconButton(
             tooltip: t[5],
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => SettingsPage(
-                  language: language,
-                  showHomeSettings: widget.elder,
-                  elder: widget.elder,
-                  onChanged: (value) {
-                    setState(() => language = value);
-                    widget.onChanged(value);
-                  },
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => SettingsPage(
+                    language: language,
+                    showHomeSettings: widget.elder,
+                    elder: widget.elder,
+                    onChanged: (value) {
+                      setState(() => language = value);
+                      widget.onChanged(value);
+                    },
+                  ),
                 ),
-              ),
-            ),
+              );
+              if (mounted && !widget.elder) {
+                setState(() => dashboardRevision++);
+              }
+            },
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -507,7 +513,7 @@ class _ModePageState extends State<ModePage> {
                 ],
               ),
             )
-          : const GuardianDemo(),
+          : GuardianDemo(key: ValueKey(dashboardRevision)),
     );
   }
 }
@@ -644,7 +650,7 @@ class _SettingsPageState extends State<SettingsPage>
           if (widget.elder != null)
             ListTile(
               leading: const Icon(Icons.link),
-              title: const Text('Saathi connections'),
+              title: Text(widget.elder! ? 'Code for guardian' : 'Add an elder'),
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(

@@ -33,7 +33,9 @@ void main() {
       expect(find.byTooltip('Saathi connections'), findsNothing);
       await tester.tap(find.byTooltip('Settings'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Saathi connections'));
+      await tester.tap(
+        find.text(mode == 'Elder mode' ? 'Code for guardian' : 'Add an elder'),
+      );
       await tester.pumpAndSettle();
       expect(find.textContaining('not configured yet'), findsOneWidget);
       await tester.pageBack();

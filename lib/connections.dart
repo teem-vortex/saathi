@@ -141,9 +141,9 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
             ),
           ] else ...[
             Text('Signed in as ${user.email ?? 'Saathi user'}'),
-            if (!widget.elder) ...[
+            if (widget.elder) ...[
               const Text(
-                'Create a code and share it with the elder. It expires in 10 minutes.',
+                'Share this code with your guardian. It expires in 10 minutes.',
               ),
               FilledButton(
                 onPressed: busy
@@ -152,11 +152,11 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
                         final value = await db.rpc('create_pairing_code');
                         if (mounted) setState(() => invite = value as String);
                       }),
-                child: const Text('Create pairing code'),
+                child: const Text('Code for guardian'),
               ),
               if (invite != null) SelectableText(invite!),
             ] else ...[
-              const Text('Enter the code shown on your guardian’s phone.'),
+              const Text('Enter the code shown on the elder’s phone.'),
               TextField(
                 controller: code,
                 decoration: const InputDecoration(labelText: 'Pairing code'),
@@ -166,7 +166,7 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
                     ? null
                     : () => run(() async {
                         await db.rpc(
-                          'request_pairing',
+                          'connect_elder',
                           params: {'code': code.text.trim()},
                         );
                         try {
@@ -177,13 +177,10 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
                         code.clear();
                         await refresh();
                         if (mounted) {
-                          setState(
-                            () => info =
-                                'Request sent. The guardian must accept it.',
-                          );
+                          setState(() => info = 'Elder connected.');
                         }
                       }),
-                child: const Text('Request connection'),
+                child: const Text('Add elder'),
               ),
             ],
             OutlinedButton(
