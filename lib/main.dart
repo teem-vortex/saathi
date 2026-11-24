@@ -1,12 +1,16 @@
+import 'app_theme.dart';
 import 'launcher_options.dart';
 import 'elder_launcher.dart';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'elder_overview.dart';
 import 'launcher_apps.dart';
 import 'guardian_demo.dart';
 import 'voice_draft.dart';
 import 'connections.dart';
 import 'push_notifications.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:material_ui/material_ui.dart';
@@ -21,7 +25,11 @@ void main() async {
     await Supabase.initialize(url: url, publishableKey: key);
     await initializePush();
     if (Supabase.instance.client.auth.currentUser != null) {
-      try { await registerPush(); } catch (_) { /* Available again on sign-in. */ }
+      try {
+        await registerPush();
+      } catch (_) {
+        /* Available again on sign-in. */
+      }
     }
   }
   final preferences = await SharedPreferences.getInstance();
@@ -168,12 +176,16 @@ class SaathiApp extends StatefulWidget {
   State<SaathiApp> createState() => _SaathiAppState();
 }
 
-class _SaathiAppState extends State<SaathiApp> {
+class _SaathiAppState extends State<SaathiApp> with WidgetsBindingObserver {
+  late final ThemeController themeController = ThemeController(
+    widget.preferences,
+  );
   final navigator = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (kIsWeb || widget.preferences == null) return;
     androidControls.setMethodCallHandler((call) async {
       if (call.method == 'openAlerts') openAlerts();
@@ -194,6 +206,11 @@ class _SaathiAppState extends State<SaathiApp> {
     });
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) themeController.refresh();
+  }
+
   void openAlerts() {
     navigator.currentState?.push(
       MaterialPageRoute<void>(builder: (_) => const DemoAlerts()),
@@ -202,7 +219,11 @@ class _SaathiAppState extends State<SaathiApp> {
 
   @override
   void dispose() {
-    if (!kIsWeb && widget.preferences != null) androidControls.setMethodCallHandler(null);
+    WidgetsBinding.instance.removeObserver(this);
+    themeController.dispose();
+    if (!kIsWeb && widget.preferences != null) {
+      androidControls.setMethodCallHandler(null);
+    }
     super.dispose();
   }
 
@@ -217,63 +238,73 @@ class _SaathiAppState extends State<SaathiApp> {
     final platformRoute =
         WidgetsBinding.instance.platformDispatcher.defaultRouteName;
     final isLauncher = platformRoute == '/elderHome';
-    return MaterialApp(
-      title: 'Saathi',
-      navigatorKey: navigator,
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff246b60)),
-        scaffoldBackgroundColor: const Color(0xfff7f6f0),
-      ),
-      initialRoute: isLauncher ? '/' : platformRoute,
-      onGenerateRoute: (settings) {
-        if (settings.name == '/assistant') {
-          return MaterialPageRoute<void>(builder: (_) => const AssistantPage());
-        }
-        return null;
-      },
-      home: isLauncher
-          ? ElderLauncher(
-              preferences: widget.preferences,
-              labelsFor: (language) => translations[language]!,
-              openSettings: (context, language, onChanged) => Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (_) => SettingsPage(
-                    language: language,
-                    showHomeSettings: true,
-                    onChanged: onChanged,
-                  ),
-                ),
-              ),
-              openAction: openElderAction,
-            )
-          : Builder(
-              builder: (context) {
-                void openSettings() => Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (_) => SettingsPage(
+    return ThemeScope(
+      controller: themeController,
+      child: AnimatedBuilder(
+        animation: themeController,
+        builder: (context, _) => MaterialApp(
+          title: 'Saathi',
+          navigatorKey: navigator,
+          debugShowCheckedModeBanner: false,
+          theme: saathiTheme(Brightness.light),
+          darkTheme: saathiTheme(Brightness.dark),
+          themeMode: themeController.mode,
+          initialRoute: isLauncher ? '/' : platformRoute,
+          onGenerateRoute: (settings) {
+            if (settings.name == '/assistant') {
+              return MaterialPageRoute<void>(
+                builder: (_) => const AssistantPage(),
+              );
+            }
+            return null;
+          },
+          home: isLauncher
+              ? ElderLauncher(
+                  preferences: widget.preferences,
+                  labelsFor: (language) => translations[language]!,
+                  openSettings: (context, language, onChanged) =>
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => SettingsPage(
+                            language: language,
+                            showHomeSettings: true,
+                            onChanged: onChanged,
+                          ),
+                        ),
+                      ),
+                  openAction: openElderAction,
+                )
+              : Builder(
+                  builder: (context) {
+                    void openSettings() => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => SettingsPage(
+                          language: language,
+                          onChanged: (value) async {
+                            setState(() => language = value);
+                            await widget.preferences?.setString(
+                              'language',
+                              value,
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                    return ModePicker(
+                      text: text,
+                      openSettings: openSettings,
                       language: language,
                       onChanged: (value) async {
                         setState(() => language = value);
                         await widget.preferences?.setString('language', value);
                       },
-                    ),
-                  ),
-                );
-                return ModePicker(
-                  text: text,
-                  openSettings: openSettings,
-                  language: language,
-                  onChanged: (value) async {
-                    setState(() => language = value);
-                    await widget.preferences?.setString('language', value);
+                    );
                   },
-                );
-              },
-            ),
+                ),
+        ),
+      ),
     );
   }
 }
@@ -376,9 +407,12 @@ class _ModePageState extends State<ModePage> {
           IconButton(
             tooltip: 'Saathi connections',
             icon: const Icon(Icons.link),
-            onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
-              builder: (_) => ConnectionsPage(elder: widget.elder),
-            )),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) => ConnectionsPage(elder: widget.elder),
+              ),
+            ),
           ),
           IconButton(
             tooltip: t[5],
@@ -420,7 +454,7 @@ class _ModePageState extends State<ModePage> {
                     ),
                     itemCount: 4,
                     itemBuilder: (context, index) => Card(
-                      color: Colors.white,
+                      color: Theme.of(context).cardTheme.color,
                       clipBehavior: Clip.antiAlias,
                       child: InkWell(
                         onTap: () {
@@ -450,7 +484,7 @@ class _ModePageState extends State<ModePage> {
                                   Icons.phone_outlined,
                                 ][index],
                                 size: 42,
-                                color: const Color(0xff246b60),
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                               const SizedBox(height: 12),
                               Flexible(
@@ -567,6 +601,35 @@ class _SettingsPageState extends State<SettingsPage>
               },
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: DropdownButtonFormField<ThemeMode>(
+              key: ValueKey(ThemeScope.of(context).mode),
+              initialValue: ThemeScope.of(context).mode,
+              decoration: InputDecoration(
+                labelText:
+                    (themeLabels[language] ?? themeLabels['English']!)[0],
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                for (final entry in [
+                  (ThemeMode.system, 1),
+                  (ThemeMode.dark, 2),
+                  (ThemeMode.light, 3),
+                ])
+                  DropdownMenuItem(
+                    value: entry.$1,
+                    child: Text(
+                      (themeLabels[language] ??
+                          themeLabels['English']!)[entry.$2],
+                    ),
+                  ),
+              ],
+              onChanged: (mode) {
+                if (mode != null) ThemeScope.of(context).setMode(mode);
+              },
+            ),
+          ),
           if (widget.showHomeSettings) ...[
             LauncherSettings(
               enabled: isHome,
@@ -664,17 +727,20 @@ class _SettingsPageState extends State<SettingsPage>
                     },
             ),
           ],
-          if (!kIsWeb) ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: const Text('Notification settings'),
-            onTap: () =>
-                androidControls.invokeMethod<void>('notificationSettings'),
-          ),
-          if (!kIsWeb) ListTile(
-            leading: const Icon(Icons.battery_saver_outlined),
-            title: const Text('Battery optimization'),
-            onTap: () => androidControls.invokeMethod<void>('batterySettings'),
-          ),
+          if (!kIsWeb)
+            ListTile(
+              leading: const Icon(Icons.notifications_outlined),
+              title: const Text('Notification settings'),
+              onTap: () =>
+                  androidControls.invokeMethod<void>('notificationSettings'),
+            ),
+          if (!kIsWeb)
+            ListTile(
+              leading: const Icon(Icons.battery_saver_outlined),
+              title: const Text('Battery optimization'),
+              onTap: () =>
+                  androidControls.invokeMethod<void>('batterySettings'),
+            ),
         ],
       ),
     );

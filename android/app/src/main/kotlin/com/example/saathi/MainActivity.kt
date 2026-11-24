@@ -205,11 +205,20 @@ open class MainActivity : FlutterActivity() {
     @Deprecated("Deprecated in Android")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 2201) {
-            val pending = speechResult
-            speechResult = null
-            val words = if (resultCode == RESULT_OK) data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull() else null
-            pending?.success(words)
+        when (requestCode) {
+            2201 -> {
+                val pending = speechResult
+                speechResult = null
+                val words = if (resultCode == RESULT_OK) {
+                    data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+                } else null
+                pending?.success(words)
+            }
+            2 -> {
+                val isHome = getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME)
+                homeRequestResult?.success(isHome)
+                homeRequestResult = null
+            }
         }
     }
 
@@ -219,15 +228,6 @@ open class MainActivity : FlutterActivity() {
         textToSpeech?.stop()
         textToSpeech?.shutdown()
         super.onDestroy()
-    }
-
-    @Deprecated("Android role picker result")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 2) {
-            homeRequestResult?.success(getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME))
-            homeRequestResult = null
-        }
     }
 
     override fun onNewIntent(intent: Intent) {

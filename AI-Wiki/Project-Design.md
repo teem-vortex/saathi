@@ -87,6 +87,28 @@ The dedicated launcher, wallpaper, status bar, card, and grid are implemented lo
 
 The layout selector, app menu, app picker, and pinned tiles are implemented locally. The Pixel API 33 emulator verified switching to Normal and opening the app menu. Translations and the 10/11-app boundary require further verification.
 
+## Light and dark theme plan
+
+One theme preference applies to Elder, Guardian, and Elder Launcher, including both launcher layouts. Settings in either mode offers a **Theme** choice with **Use system theme**, **Dark**, and **Light**. Launcher Settings exposes the same control. Existing installs start with **Use system theme** when there is no saved preference. Theme is a device preference and works offline.
+
+1. **Set up two Material themes.** Move the current inline light theme into a shared theme file and add a dark color scheme using the same teal identity. Light keeps the warm background and light cards. Dark uses a charcoal background with lighter charcoal surfaces, soft white text, and a lighter teal accent. Define matching foreground and background colors for buttons, cards, dialogs, fields, selection states, and disabled states. Give health statuses distinct icon shapes and readable theme-specific colors so warnings remain distinguishable without relying on color alone.
+2. **Apply and save the choice at the app root.** Give the shared Flutter root a light theme, dark theme, and theme mode. Load the saved choice from the existing preferences before the first Flutter frame and use System if the saved value is missing or unknown. Update the active Settings screen and every route immediately without resetting navigation or scrolling. Let Flutter react to changes in system brightness when System is selected. Keep explicit Light and Dark choices independent of system brightness.
+3. **Synchronize regular app and launcher.** The normal Android activity and Home activity can have separate Flutter engines and cached preferences. Save one theme value for both and refresh it from storage on resume, including a return to Home. Keep the selected setting current when Settings has stayed open in either activity. Localize the setting and its three choices in English, Tamil, Kannada, Telugu, and Malayalam.
+4. **Update the full screen set.** Replace fixed white cards and fixed teal text or icons with theme colors where needed. Inspect the mode picker, Elder tiles and readings, Guardian dashboard and alerts, Connections and messaging, assistant, Settings, launcher app menu, and app picker. Check shared form fields, snackbars, and dialogs. Keep distinct success, warning, and unavailable states with readable labels and icons.
+5. **Keep the launcher wallpaper visible.** Apply the theme to launcher cards, tiles, and controls and let Android continue to draw the real wallpaper between them. Use a translucent header and a stable scrim behind the status bar icons so controls stay legible on bright and dark wallpapers. Verify opening Apps, pressing Back, and pressing Home without a light surface appearing during a dark transition. Check cold starts in both themes and adjust Android startup colors if a visible flash remains. Keep the launcher window transparent.
+
+### Theme verification
+
+| Check | Expected result |
+| --- | --- |
+| Fresh install with Android light and dark settings | Saathi initially follows the system. While System is selected, switching the OS appearance updates the app and launcher. |
+| Force Dark on a light system and Light on a dark system | The selected appearance takes effect immediately and persists after restart. |
+| Change Theme in Elder, Guardian, and Launcher Settings | Each entry displays the saved choice. Switching between app and launcher shows the latest appearance without losing the current screen. |
+| Open representative screens in both themes | Cards, forms, dialogs, alerts, and status icons stay readable. Check large text and all five theme translations. |
+| Exercise Home and Apps with light and dark wallpapers | Wallpaper stays visible, status bar and Back stay readable, and both animation directions work in both themes. |
+
+Run Flutter analysis and tests, add focused coverage for theme selection and persistence, then exercise the activity handoff and wallpaper on the Pixel 7 Android 13 emulator. Theme support is implemented locally. Flutter analysis and theme persistence tests passed. Dark Settings and the Home launcher were checked on the Android 13 emulator. Wider language, system theme, Guardian, and transition checks remain pending.
+
 ## Elder phone assistant plan
 
 **User flow.** Elder Settings offers **Use Saathi as phone assistant** and shows whether Saathi is selected. The button opens Android's Default apps settings so the user can choose Saathi under the digital assistant setting. **Change phone assistant** opens the same settings to switch back. Refresh the status from Android when Elder Settings resumes. Provide manual steps if the settings screen cannot be opened. The assistant and Home roles are independent.

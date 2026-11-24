@@ -33,3 +33,8 @@
 - Offer **Minimal** with the existing Elder actions and optional direct app tiles. **Normal** also provides an **Apps** tile. Let users show all launchable apps or a preferred subset. The app menu scrolls vertically with two columns for up to 10 visible apps and three for 11 or more.
 - Show Launcher type as a Minimal / Normal (with app menu) dropdown. Grey launcher customization until Android reports Saathi as the Home app. Tapping a grey option explains how to enable Saathi, scrolls to the Home selection control, and highlights it. Keep the Home selection control available at all times.
 - Show the system wallpaper through the Apps menu background and keep its back arrow visible.
+
+## Theme
+
+- Offer **Use system theme**, **Dark**, and **Light** under **Theme** in Elder and Guardian Settings and through the launcher gear. Use system theme by default. Share the saved choice across Elder, Guardian, and both launcher layouts.
+- Keep text, action icons, and reading states readable in both themes. Keep Android wallpaper visible around the launcher and Apps menu tiles, with readable system bars and Back controls.

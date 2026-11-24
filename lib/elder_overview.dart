@@ -165,7 +165,7 @@ class _ElderOverviewState extends State<ElderOverview> {
                                   ? null
                                   : flagged.contains(key)
                                   ? Theme.of(context).colorScheme.error
-                                  : const Color(0xff246b60),
+                                  : Theme.of(context).colorScheme.primary,
                               size: 17,
                             ),
                             const SizedBox(width: 4),

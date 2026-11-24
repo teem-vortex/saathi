@@ -122,7 +122,11 @@ class LauncherAppsGrid extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icons[index], size: 42, color: const Color(0xff246b60)),
+                Icon(
+                  icons[index],
+                  size: 42,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   labels[index],
