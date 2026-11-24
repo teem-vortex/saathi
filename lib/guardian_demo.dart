@@ -1,9 +1,13 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'connections.dart';
 
 const androidControls = MethodChannel('saathi/android');
 const demoElderName = 'Meera';
@@ -19,6 +23,7 @@ class GuardianDemo extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(20),
     children: [
+      const ConnectedElders(),
       Text(
         'Health overview',
         style: Theme.of(context).textTheme.headlineMedium,
@@ -53,6 +58,91 @@ class GuardianDemo extends StatelessWidget {
         ),
     ],
   );
+}
+
+class ConnectedElders extends StatefulWidget {
+  const ConnectedElders({super.key});
+
+  @override
+  State<ConnectedElders> createState() => _ConnectedEldersState();
+}
+
+class _ConnectedEldersState extends State<ConnectedElders> {
+  Future<List<dynamic>>? elders;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  void load() {
+    if (!messagingConfigured ||
+        Supabase.instance.client.auth.currentUser == null) {
+      return;
+    }
+    elders = Supabase.instance.client
+        .rpc('connected_elders')
+        .then((value) => value as List<dynamic>);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (elders == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Sign in through Settings to see connected elders.'),
+          TextButton(
+            onPressed: () => setState(load),
+            child: const Text('Refresh connected elders'),
+          ),
+          const SizedBox(height: 16),
+        ],
+      );
+    }
+    return FutureBuilder<List<dynamic>>(
+      future: elders,
+      builder: (context, snapshot) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Connected elders',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Refresh connected elders',
+                icon: const Icon(Icons.refresh),
+                onPressed: () => setState(load),
+              ),
+            ],
+          ),
+          if (snapshot.hasError)
+            const Text('Could not load connected elders.')
+          else if (!snapshot.hasData)
+            const LinearProgressIndicator()
+          else if (snapshot.data!.isEmpty)
+            const Text('No elders connected yet.')
+          else
+            for (final elder in snapshot.data!)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.person_outline),
+                  title: Text((elder['elder_email'] as String?) ?? 'Elder'),
+                  subtitle: const Text(
+                    'Connected · Health readings unavailable',
+                  ),
+                ),
+              ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
 }
 
 class DemoReadings extends StatefulWidget {
@@ -93,7 +183,9 @@ class _DemoReadingsState extends State<DemoReadings> {
       if (!await preferences.setStringList(_alertKey, alerts)) {
         throw StateError('Could not save alert');
       }
-      final shown = !kIsWeb && (await androidControls.invokeMethod<bool>('notify') ?? false);
+      final shown =
+          !kIsWeb &&
+          (await androidControls.invokeMethod<bool>('notify') ?? false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

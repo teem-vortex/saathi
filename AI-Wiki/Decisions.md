@@ -17,6 +17,7 @@ When a standing decision changes, date the new entry, identify what it supersede
 
 - 2026-11-23: For the free-tier MVP, use Supabase email accounts and expiring pairing codes, with Firebase Cloud Messaging for push. This supersedes the AWS-first backend decision for the MVP. Deployment and end-to-end verification remain pending.
 
+- 2026-11-24: The elder creates a single-use ten-minute guardian code in Settings. A signed-in guardian enters it to connect. This replaces the earlier guardian-issued code direction for new connections. Connected guardians can see the elder account, while health readings remain unavailable until a data source is integrated.
 ## 2026-11-24 — SOS preview and emergency dialer
 
 - SOS demo mode defaults on and suppresses opening the emergency dialer while retaining the alert flow. It does not simulate family alerts; configured guardians can receive them.
