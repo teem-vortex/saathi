@@ -11,6 +11,7 @@ import 'launcher_apps.dart';
 import 'guardian_demo.dart';
 import 'voice_draft.dart';
 import 'connections.dart';
+import 'sign_in_gate.dart';
 import 'push_notifications.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -172,7 +173,8 @@ const translations = <String, List<String>>{
 };
 
 class SaathiApp extends StatefulWidget {
-  const SaathiApp({super.key, this.preferences});
+  const SaathiApp({super.key, this.preferences, this.authGateBuilder});
+  final Widget Function(Widget)? authGateBuilder;
   final SharedPreferences? preferences;
   @override
   State<SaathiApp> createState() => _SaathiAppState();
@@ -296,6 +298,7 @@ class _SaathiAppState extends State<SaathiApp> with WidgetsBindingObserver {
                       ),
                     );
                     return ModePicker(
+                      authGateBuilder: widget.authGateBuilder,
                       text: text,
                       openSettings: openSettings,
                       language: language,
@@ -315,11 +318,13 @@ class _SaathiAppState extends State<SaathiApp> with WidgetsBindingObserver {
 class ModePicker extends StatelessWidget {
   const ModePicker({
     super.key,
+    this.authGateBuilder,
     required this.text,
     required this.openSettings,
     required this.language,
     required this.onChanged,
   });
+  final Widget Function(Widget)? authGateBuilder;
   final List<String> text;
   final VoidCallback openSettings;
   final String language;
@@ -367,11 +372,15 @@ class ModePicker extends StatelessWidget {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (_) => ModePage(
-                          elder: i == 1,
-                          language: language,
-                          onChanged: onChanged,
-                        ),
+                        builder: (_) {
+                          final page = ModePage(
+                            elder: i == 1,
+                            language: language,
+                            onChanged: onChanged,
+                          );
+                          return authGateBuilder?.call(page) ??
+                              SignInGate(child: page);
+                        },
                       ),
                     ),
                   ),

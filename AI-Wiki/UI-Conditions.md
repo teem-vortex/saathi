@@ -2,7 +2,7 @@
 
 ## Mode selection
 
-- Offer **Elder mode** and **Guardian mode** on the opening screen. During the UI preview, tapping a mode opens it directly.
+- Offer **Elder mode** and **Guardian mode** on the opening screen. Tapping a mode requires an account sign-in before opening it; an existing session can continue directly.
 - Keep a visible **Switch mode** control and standard Android back navigation when the app is opened normally. When opened as the Home launcher, show the Elder screen without a back or mode-switch control.
 
 ## Elder mode

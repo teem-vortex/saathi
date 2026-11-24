@@ -4,9 +4,21 @@ import 'package:flutter/services.dart';
 import 'package:saathi/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+Widget bypassGate(Widget child) => child;
+
 void main() {
-  testWidgets('Both modes open and return to the picker', (tester) async {
+  testWidgets("Both modes require sign-in when unconfigured", (tester) async {
     await tester.pumpWidget(const SaathiApp());
+    for (final mode in ["Elder mode", "Guardian mode"]) {
+      await tester.tap(find.text(mode));
+      await tester.pumpAndSettle();
+      expect(find.textContaining("Sign-in is not configured"), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+    }
+  });
+  testWidgets('Both modes open and return to the picker', (tester) async {
+    await tester.pumpWidget(SaathiApp(authGateBuilder: bypassGate));
     await tester.tap(find.text('Elder mode'));
     await tester.pumpAndSettle();
     expect(find.text('Ask for a call'), findsNothing);
@@ -27,7 +39,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(const SaathiApp());
+    await tester.pumpWidget(SaathiApp(authGateBuilder: bypassGate));
     for (final mode in ['Elder mode', 'Guardian mode']) {
       await tester.tap(find.text(mode));
       await tester.pumpAndSettle();
@@ -79,7 +91,7 @@ void main() {
       () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, null),
     );
-    await tester.pumpWidget(const SaathiApp());
+    await tester.pumpWidget(SaathiApp(authGateBuilder: bypassGate));
     await tester.tap(find.text('Elder mode'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Talk to Saathi'));

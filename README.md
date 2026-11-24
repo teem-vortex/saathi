@@ -89,3 +89,16 @@ The [AI Wiki](AI-Wiki/Home.md) contains the design, UI requirements, decisions, 
 ## License
 
 Saathi is distributed under the [GNU General Public License v3.0](LICENSE).
+
+### Google sign-in setup
+
+Saathi uses Supabase OAuth with a browser and an Android app callback. Configure
+Google Auth Platform with an OAuth **Web application** client. Add the Supabase
+Google provider callback URL shown in the Supabase dashboard as an authorized
+redirect URI in Google Cloud, and enter the web client ID and secret in the
+Supabase Google provider settings. Configure the Google consent screen and add
+test users while the app is in testing. In Supabase Authentication URL
+Configuration, allow `com.teemvortex.saathi://login-callback/` as a redirect
+URL. Supply `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the Flutter build as
+above; never put the Google client secret in the app. Google OAuth and the
+Android callback must be tested with the configured project and a real account.
