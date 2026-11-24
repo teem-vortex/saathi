@@ -50,6 +50,14 @@ open class MainActivity : FlutterActivity() {
         channel = MethodChannel(engine.dartExecutor.binaryMessenger, "saathi/android").apply {
             setMethodCallHandler { call, result ->
                 when (call.method) {
+                    "peekWatchDraft" -> {
+                        val store = getSharedPreferences("watch_drafts", MODE_PRIVATE)
+                        result.success(store.getString("pending_text", null))
+                    }
+                    "clearWatchDraft" -> {
+                        val store = getSharedPreferences("watch_drafts", MODE_PRIVATE)
+                        result.success(store.edit().remove("pending_text").commit())
+                    }
                     "pickCallContact" -> {
                         if (contactResult != null) {
                             result.error("BUSY", "Contact picker is already open", null)
@@ -338,6 +346,10 @@ open class MainActivity : FlutterActivity() {
         if (intent.action == alertAction && channel != null) {
             intent.action = null
             channel?.invokeMethod("openAlerts", null)
+        }
+        if (intent.action == "com.example.saathi.OPEN_WATCH_DRAFT" && channel != null) {
+            intent.action = null
+            channel?.invokeMethod("openWatchDraft", null)
         }
         super.onNewIntent(intent)
     }

@@ -16,16 +16,30 @@ String voiceLocale(String language) => switch (language) {
 };
 
 class VoiceDraftPage extends StatefulWidget {
-  const VoiceDraftPage({super.key, required this.language});
+  const VoiceDraftPage({
+    super.key,
+    required this.language,
+    this.initialDraft,
+    this.fromWatch = false,
+  });
   final String language;
+  final String? initialDraft;
+  final bool fromWatch;
   @override
   State<VoiceDraftPage> createState() => _VoiceDraftPageState();
 }
 
 class _VoiceDraftPageState extends State<VoiceDraftPage> {
   final message = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    message.text = widget.initialDraft ?? '';
+  }
+
   bool busy = false;
   bool sending = false;
+  bool sent = false;
   String? status;
 
   Future<void> send() async {
@@ -92,6 +106,19 @@ class _VoiceDraftPageState extends State<VoiceDraftPage> {
         'send_message',
         params: {'pairing': selected, 'message': text},
       );
+      sent = true;
+      var draftStatus = '';
+      if (widget.fromWatch) {
+        try {
+          final cleared = await const MethodChannel('saathi/android')
+              .invokeMethod<bool>('clearWatchDraft');
+          if (cleared != true) {
+            draftStatus = ' The watch draft could not be cleared.';
+          }
+        } catch (_) {
+          draftStatus = ' The watch draft could not be cleared.';
+        }
+      }
       var notificationStatus = 'Notification could not be confirmed.';
       try {
         final response = await db.functions.invoke(
@@ -111,7 +138,10 @@ class _VoiceDraftPageState extends State<VoiceDraftPage> {
         /* Message remains saved even if the notification fails. */
       }
       if (mounted) {
-        setState(() => status = 'Message saved in Saathi. $notificationStatus');
+        setState(
+          () => status =
+              'Message saved in Saathi. $notificationStatus$draftStatus',
+        );
       }
     } catch (_) {
       if (mounted) {
@@ -235,13 +265,39 @@ class _VoiceDraftPageState extends State<VoiceDraftPage> {
           label: const Text('Read draft aloud'),
         ),
         FilledButton.icon(
-          onPressed: busy || sending ? null : send,
+          onPressed: busy || sending || sent ? null : send,
           icon: const Icon(Icons.send),
           label: const Text('Send to guardian'),
         ),
         const Text(
           'Sign in and link your guardian using Saathi connections before sending.',
         ),
+        if (widget.fromWatch)
+          TextButton(
+            onPressed: () async {
+              final discard = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Discard watch draft?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Keep'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Discard'),
+                    ),
+                  ],
+                ),
+              );
+              if (discard != true || !context.mounted) return;
+              await const MethodChannel('saathi/android')
+                  .invokeMethod<bool>('clearWatchDraft');
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text('Discard watch draft'),
+          ),
         if (status != null)
           Padding(
             padding: const EdgeInsets.only(top: 16),

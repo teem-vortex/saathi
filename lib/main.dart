@@ -185,6 +185,7 @@ class _SaathiAppState extends State<SaathiApp> with WidgetsBindingObserver {
     widget.preferences,
   );
   final navigator = GlobalKey<NavigatorState>();
+  bool checkingWatchDraft = false;
 
   @override
   void initState() {
@@ -193,11 +194,13 @@ class _SaathiAppState extends State<SaathiApp> with WidgetsBindingObserver {
     if (kIsWeb || widget.preferences == null) return;
     androidControls.setMethodCallHandler((call) async {
       if (call.method == 'openAlerts') openAlerts();
+      if (call.method == 'openWatchDraft') await openWatchDraft();
       if (call.method == 'returnHome') {
         navigator.currentState?.popUntil((route) => route.isFirst);
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await openWatchDraft();
       if (await androidControls.invokeMethod<bool>('consumeAlert') == true) {
         openAlerts();
       }
@@ -212,7 +215,29 @@ class _SaathiAppState extends State<SaathiApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) themeController.refresh();
+    if (state == AppLifecycleState.resumed) {
+      themeController.refresh();
+      if (!kIsWeb && widget.preferences != null) openWatchDraft();
+    }
+  }
+
+  Future<void> openWatchDraft() async {
+    if (checkingWatchDraft || navigator.currentState == null) return;
+    checkingWatchDraft = true;
+    try {
+      final draft = await androidControls.invokeMethod<String>(
+        'peekWatchDraft',
+      );
+      if (!mounted || draft == null || draft.isEmpty) return;
+      navigator.currentState?.push(
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              VoiceDraftPage(language: language, initialDraft: draft),
+        ),
+      );
+    } finally {
+      checkingWatchDraft = false;
+    }
   }
 
   void openAlerts() {
