@@ -9,7 +9,8 @@ void main() {
     await tester.pumpWidget(const SaathiApp());
     await tester.tap(find.text('Elder mode'));
     await tester.pumpAndSettle();
-    expect(find.text('Ask for a call'), findsOneWidget);
+    expect(find.text('Ask for a call'), findsNothing);
+    expect(find.text('I’m okay'), findsNothing);
     await tester.tap(find.text('Switch mode'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Guardian mode'));

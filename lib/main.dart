@@ -452,7 +452,7 @@ class _ModePageState extends State<ModePage> {
                       crossAxisSpacing: 14,
                       mainAxisExtent: (constraints.maxWidth - 54) / 2,
                     ),
-                    itemCount: 4,
+                    itemCount: 2,
                     itemBuilder: (context, index) => Card(
                       color: Theme.of(context).cardTheme.color,
                       clipBehavior: Clip.antiAlias,
@@ -480,8 +480,6 @@ class _ModePageState extends State<ModePage> {
                                 [
                                   Icons.mic_none,
                                   Icons.volume_up_outlined,
-                                  Icons.favorite_border,
-                                  Icons.phone_outlined,
                                 ][index],
                                 size: 42,
                                 color: Theme.of(context).colorScheme.primary,

@@ -94,8 +94,6 @@ class _ElderLauncherState extends State<ElderLauncher>
     const icons = [
       Icons.mic_none,
       Icons.volume_up_outlined,
-      Icons.favorite_border,
-      Icons.phone_outlined,
     ];
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
