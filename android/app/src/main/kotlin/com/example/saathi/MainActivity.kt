@@ -313,6 +313,10 @@ open class MainActivity : FlutterActivity() {
                 homeRequestResult = null
             }
         }
+        if (requestCode == 2) {
+            homeRequestResult?.success(getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME))
+            homeRequestResult = null
+        }
     }
 
     override fun onDestroy() {
