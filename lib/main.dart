@@ -269,6 +269,7 @@ class _SaathiAppState extends State<SaathiApp> with WidgetsBindingObserver {
                           builder: (_) => SettingsPage(
                             language: language,
                             showHomeSettings: true,
+                            elder: true,
                             onChanged: onChanged,
                           ),
                         ),
@@ -405,16 +406,6 @@ class _ModePageState extends State<ModePage> {
         title: Text(widget.elder ? 'Saathi' : t[15]),
         actions: [
           IconButton(
-            tooltip: 'Saathi connections',
-            icon: const Icon(Icons.link),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => ConnectionsPage(elder: widget.elder),
-              ),
-            ),
-          ),
-          IconButton(
             tooltip: t[5],
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => Navigator.push(
@@ -423,6 +414,7 @@ class _ModePageState extends State<ModePage> {
                 builder: (_) => SettingsPage(
                   language: language,
                   showHomeSettings: widget.elder,
+                  elder: widget.elder,
                   onChanged: (value) {
                     setState(() => language = value);
                     widget.onChanged(value);
@@ -521,7 +513,9 @@ class SettingsPage extends StatefulWidget {
     required this.language,
     required this.onChanged,
     this.showHomeSettings = false,
+    this.elder,
   });
+  final bool? elder;
   final String language;
   final ValueChanged<String> onChanged;
   final bool showHomeSettings;
@@ -630,6 +624,17 @@ class _SettingsPageState extends State<SettingsPage>
               },
             ),
           ),
+          if (widget.elder != null)
+            ListTile(
+              leading: const Icon(Icons.link),
+              title: const Text('Saathi connections'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => ConnectionsPage(elder: widget.elder!),
+                ),
+              ),
+            ),
           if (widget.showHomeSettings) ...[
             LauncherSettings(
               enabled: isHome,

@@ -38,3 +38,4 @@
 
 - Offer **Use system theme**, **Dark**, and **Light** under **Theme** in Elder and Guardian Settings and through the launcher gear. Use system theme by default. Share the saved choice across Elder, Guardian, and both launcher layouts.
 - Keep text, action icons, and reading states readable in both themes. Keep Android wallpaper visible around the launcher and Apps menu tiles, with readable system bars and Back controls.
+- Put Saathi Connections in Elder and Guardian Settings. The launcher Settings opens Elder Connections.

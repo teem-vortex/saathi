@@ -18,6 +18,33 @@ void main() {
     expect(find.byType(MaterialApp), findsOneWidget);
   });
 
+  testWidgets('Connections is available through each mode settings', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(const SaathiApp());
+    for (final mode in ['Elder mode', 'Guardian mode']) {
+      await tester.tap(find.text(mode));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Saathi connections'), findsNothing);
+      await tester.tap(find.byTooltip('Settings'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Saathi connections'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('not configured yet'), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Switch mode'));
+      await tester.pumpAndSettle();
+    }
+  });
+
   testWidgets('Voice draft transcribes and reads back without sending', (
     tester,
   ) async {
@@ -61,7 +88,10 @@ void main() {
     await tester.tap(find.text('Speak message'));
     await tester.pumpAndSettle();
     expect(find.text('Hello family, how are you?'), findsOneWidget);
-    expect(find.textContaining('Your message has not been sent'), findsOneWidget);
+    expect(
+      find.textContaining('Your message has not been sent'),
+      findsOneWidget,
+    );
     expect(calls.where((call) => call.method == 'composeSms'), isEmpty);
   });
 }
