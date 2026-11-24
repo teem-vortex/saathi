@@ -36,6 +36,7 @@ open class MainActivity : FlutterActivity() {
     private var contactResult: MethodChannel.Result? = null
     private var callResult: MethodChannel.Result? = null
     private var pendingNumber: String? = null
+    private var locationResult: MethodChannel.Result? = null
     private var speechResult: MethodChannel.Result? = null
     private var textToSpeech: TextToSpeech? = null
     private var ttsReady = false
@@ -63,15 +64,26 @@ open class MainActivity : FlutterActivity() {
                         }
                     }
                     "placeCall" -> {
-                        val number = call.arguments as? String
+                        val number = (call.arguments as? String) ?: call.argument<String>("number")
+                        val dialOnly = call.arguments is Map<*, *> && call.argument<Boolean>("dialOnly") == true
                         if (number.isNullOrBlank() || callResult != null) {
                             result.success(false)
+                        } else if (dialOnly || getSystemService(android.telephony.TelephonyManager::class.java).isEmergencyNumber(number)) {
+                            result.success(placeCall(number, dialOnly))
                         } else if (checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
                             pendingNumber = number
                             callResult = result
                             requestPermissions(arrayOf(Manifest.permission.CALL_PHONE), 2203)
                         } else {
                             result.success(placeCall(number))
+                        }
+                    }
+                    "sosLocation" -> {
+                        if (locationResult != null) result.success(null)
+                        else if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) result.success(lastSosLocation())
+                        else {
+                            locationResult = result
+                            requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), 2204)
                         }
                     }
                     "apps" -> {
@@ -232,10 +244,18 @@ open class MainActivity : FlutterActivity() {
         textToSpeech = TextToSpeech(this) { status -> ttsReady = status == TextToSpeech.SUCCESS }
     }
 
-    private fun placeCall(number: String): Boolean {
+    private fun lastSosLocation(): Map<String, Double>? = try {
+        val manager = getSystemService(android.location.LocationManager::class.java)
+        val location = manager.getProviders(true).mapNotNull { provider ->
+            try { manager.getLastKnownLocation(provider) } catch (_: Exception) { null }
+        }.filter { System.currentTimeMillis() - it.time < 10 * 60 * 1000L }.maxByOrNull { it.time }
+        location?.let { mapOf("latitude" to it.latitude, "longitude" to it.longitude) }
+    } catch (_: Exception) { null }
+
+    private fun placeCall(number: String, dialOnly: Boolean = false): Boolean {
         return try {
             val telecom = getSystemService(android.telephony.TelephonyManager::class.java)
-            if (telecom.isEmergencyNumber(number)) {
+            if (dialOnly || telecom.isEmergencyNumber(number)) {
                 startActivity(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number, null)))
             } else {
                 startActivity(Intent(Intent.ACTION_CALL, Uri.fromParts("tel", number, null)))
@@ -252,6 +272,10 @@ open class MainActivity : FlutterActivity() {
             callResult?.success(granted && number != null && placeCall(number))
             callResult = null
             pendingNumber = null
+        }
+        if (requestCode == 2204) {
+            locationResult?.success(if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) lastSosLocation() else null)
+            locationResult = null
         }
     }
 
@@ -288,6 +312,10 @@ open class MainActivity : FlutterActivity() {
                 homeRequestResult?.success(isHome)
                 homeRequestResult = null
             }
+        }
+        if (requestCode == 2) {
+            homeRequestResult?.success(getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME))
+            homeRequestResult = null
         }
     }
 

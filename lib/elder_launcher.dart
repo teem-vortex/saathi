@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'elder_overview.dart';
 import 'call_page.dart';
 import 'launcher_options.dart';
+import 'emergency_sos.dart';
 
 class ElderLauncher extends StatefulWidget {
   const ElderLauncher({
@@ -138,6 +139,7 @@ class _ElderLauncherState extends State<ElderLauncher>
                     ),
                     const SizedBox(height: 8),
                     Card(child: ElderOverview(language: language)),
+                    SosButton(language: language),
                     const SizedBox(height: 8),
                     for (var row = 0; row < icons.length; row += 2)
                       IntrinsicHeight(

@@ -2,6 +2,7 @@ import 'call_page.dart';
 import 'app_theme.dart';
 import 'launcher_options.dart';
 import 'elder_launcher.dart';
+import 'emergency_sos.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -540,12 +541,16 @@ class _SettingsPageState extends State<SettingsPage>
   final homeKey = GlobalKey();
   bool isAssistant = false;
   bool callEnabled = true;
+  bool sosDemo = true;
 
   Future<void> loadCallSetting() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload();
     if (mounted) {
-      setState(() => callEnabled = prefs.getBool(callEnabledKey) ?? true);
+      setState(() {
+        callEnabled = prefs.getBool(callEnabledKey) ?? true;
+        sosDemo = prefs.getBool(sosDemoKey) ?? true;
+      });
     }
   }
 
@@ -657,6 +662,18 @@ class _SettingsPageState extends State<SettingsPage>
               ),
             ),
           if (widget.showHomeSettings) ...[
+            SwitchListTile(
+              title: Text((sosLabels[language] ?? sosLabels['English']!)[7]),
+              subtitle: Text(
+                (sosLabels[language] ?? sosLabels['English']!)[10],
+              ),
+              value: sosDemo,
+              onChanged: (value) async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool(sosDemoKey, value);
+                if (mounted) setState(() => sosDemo = value);
+              },
+            ),
             SwitchListTile(
               title: Text((callLabels[language] ?? callLabels['English']!)[0]),
               subtitle: Text(
