@@ -16,3 +16,8 @@ When a standing decision changes, date the new entry, identify what it supersede
 - 2026-11-22: Corrected the earlier two-row layout decision. Elder actions use two columns and additional rows, scrolling vertically.
 
 - 2026-11-23: For the free-tier MVP, use Supabase email accounts and expiring pairing codes, with Firebase Cloud Messaging for push. This supersedes the AWS-first backend decision for the MVP. Deployment and end-to-end verification remain pending.
+
+## 2026-11-24 — SOS preview and emergency dialer
+
+- SOS demo mode defaults on and suppresses opening the emergency dialer while retaining the alert flow. It does not simulate family alerts; configured guardians can receive them.
+- The Android bridge opens the emergency number in the system dialer without requesting direct-call permission. The person must place the call. Location is optional and the alert does not depend on a location fix.
