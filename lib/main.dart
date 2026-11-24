@@ -410,6 +410,21 @@ class _ModePageState extends State<ModePage> {
         title: Text(widget.elder ? 'Saathi' : t[15]),
         actions: [
           IconButton(
+            tooltip: 'Sign in and connections',
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => ConnectionsPage(elder: widget.elder),
+                ),
+              );
+              if (mounted && !widget.elder) {
+                setState(() => dashboardRevision++);
+              }
+            },
+          ),
+          IconButton(
             tooltip: t[5],
             icon: const Icon(Icons.settings_outlined),
             onPressed: () async {

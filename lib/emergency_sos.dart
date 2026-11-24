@@ -10,6 +10,14 @@ import 'guardian_demo.dart' show androidControls;
 const emergencyNumber = '112';
 const sosDemoKey = 'sosDemoMode';
 
+const emergencyCallLabels = {
+  'English': 'Emergency call',
+  'தமிழ்': 'அவசர அழைப்பு',
+  'ಕನ್ನಡ': 'ತುರ್ತು ಕರೆ',
+  'తెలుగు': 'అత్యవసర కాల్',
+  'മലയാളം': 'അടിയന്തര വിളി',
+};
+
 // SOS, hold, cancel, sending, sent, failed, dial instruction, demo, done, dial failed
 const sosLabels = <String, List<String>>{
   'English': [
@@ -123,8 +131,8 @@ class _SosButtonState extends State<SosButton>
         onTapUp: (_) => controller.reset(),
         onTapCancel: () => controller.reset(),
         child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          padding: const EdgeInsets.all(20),
+          margin: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: const Color(0xffb00020),
             borderRadius: BorderRadius.circular(18),
@@ -135,14 +143,22 @@ class _SosButtonState extends State<SosButton>
                 labels[0],
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 36,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                emergencyCallLabels[widget.language] ?? 'Emergency call',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
                 labels[1],
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 19),
+                style: const TextStyle(color: Colors.white, fontSize: 13),
               ),
               const SizedBox(height: 12),
               AnimatedBuilder(

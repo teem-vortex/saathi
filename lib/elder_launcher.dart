@@ -92,10 +92,7 @@ class _ElderLauncherState extends State<ElderLauncher>
   Widget build(BuildContext context) {
     final labels = widget.labelsFor(language);
     final topInset = MediaQuery.paddingOf(context).top;
-    const icons = [
-      Icons.mic_none,
-      Icons.volume_up_outlined,
-    ];
+    const icons = [Icons.mic_none, Icons.volume_up_outlined];
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
@@ -139,7 +136,6 @@ class _ElderLauncherState extends State<ElderLauncher>
                     ),
                     const SizedBox(height: 8),
                     Card(child: ElderOverview(language: language)),
-                    SosButton(language: language),
                     const SizedBox(height: 8),
                     for (var row = 0; row < icons.length; row += 2)
                       IntrinsicHeight(
@@ -224,6 +220,10 @@ class _ElderLauncherState extends State<ElderLauncher>
                               ),
                             ),
                           ),
+                        SizedBox(
+                          width: (MediaQuery.sizeOf(context).width - 32) / 2,
+                          child: SosButton(language: language),
+                        ),
                       ],
                     ),
                   ],

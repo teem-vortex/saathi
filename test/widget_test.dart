@@ -31,6 +31,11 @@ void main() {
     for (final mode in ['Elder mode', 'Guardian mode']) {
       await tester.tap(find.text(mode));
       await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Sign in and connections'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('not configured yet'), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
       expect(find.byTooltip('Saathi connections'), findsNothing);
       await tester.tap(find.byTooltip('Settings'));
       await tester.pumpAndSettle();

@@ -28,7 +28,7 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
   @override
   void initState() {
     super.initState();
-    if (messagingConfigured && db.auth.currentUser != null) refresh();
+    if (messagingConfigured && db.auth.currentUser != null) run(refresh);
   }
 
   @override
@@ -70,6 +70,15 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
     if (mounted) {
       setState(() => pairs = List<Map<String, dynamic>>.from(records));
     }
+  }
+
+  Future<void> refreshAfterSignIn() async {
+    try {
+      await registerPush();
+    } catch (_) {
+      // Signing in and reading messages must still work without push.
+    }
+    await refresh();
   }
 
   @override
@@ -114,7 +123,7 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
                         password: password.text,
                       );
                       password.clear();
-                      await refresh();
+                      await refreshAfterSignIn();
                     }),
               child: const Text('Sign in'),
             ),
@@ -134,7 +143,7 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
                           );
                         }
                       } else {
-                        await refresh();
+                        await refreshAfterSignIn();
                       }
                     }),
               child: const Text('Create account'),
@@ -149,6 +158,7 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
                 onPressed: busy
                     ? null
                     : () => run(() async {
+                        if (mounted) setState(() => invite = null);
                         final value = await db.rpc('create_pairing_code');
                         if (mounted) setState(() => invite = value as String);
                       }),
