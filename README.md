@@ -23,6 +23,13 @@ Saathi is an Android prototype for elder check-ins and guardian follow-up. It us
 
 Install Flutter, Android Studio, and the Android SDK. Start an emulator or connect a device running **Android 13 (API 33)** or later.
 
+Android builds need a full JDK with `javac`, not only a Java runtime. Check
+`flutter doctor -v` for the Java path. If needed, select Android Studio's bundled
+JDK with `flutter config --jdk-dir <path-to-jdk>`. For direct Gradle commands,
+set `JAVA_HOME` to the JDK or configure `org.gradle.java.home` in your user
+Gradle properties. Use the project Gradle wrapper from `android/` so its pinned
+version is used.
+
 ```sh
 git clone https://github.com/teem-vortex/saathi.git
 cd saathi

@@ -2,6 +2,10 @@
 
 ## 2026-11-25
 
+- **Android JDK setup.** The system Java runtime lacked javac. Configured local Flutter and user Gradle to use Android Studio’s bundled full JDK, and documented portable setup. The pinned Gradle wrapper built both phone and Wear OS debug APKs successfully. This does not verify device behavior or configured sign-in.
+
+## 2026-11-25
+
 - **SOS tile and account access.** Moved the launcher SOS control below the other tiles, sized it as a tile, and added an emergency-call label. The three-second hold and five-second cancellation countdown remain unchanged. Added direct account access on both mode screens while retaining preview access. Flutter analysis and tests passed; no Android device was connected, so layout and real SOS behavior were not verified on-device. Changes are local.
 
 - **Connection sign-in review.** On a clean checkout of merged main, made sign-in and immediate-session signup attempt push registration, surfaced initial connection refresh errors, and cleared an old displayed invitation before generating a replacement. Flutter analysis and five tests passed. No Android device was connected; real two-account sign-in, pairing, push delivery, and service configuration remain unverified. Changes are local to the fix/auth-pairing worktree.
