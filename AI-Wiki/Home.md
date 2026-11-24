@@ -7,6 +7,7 @@ Open this folder as an Obsidian vault and start with this note. The same Markdow
 | [Project Conditions](Project-Conditions.md) | Standing instructions and development constraints |
 | [UI Conditions](UI-Conditions.md) | Mode boundaries, accessibility, and preview behavior |
 | [Project Design](Project-Design.md) | Product flows, current delivery status, and integration order |
+| [Watch App Plan](Watch-App-Plan.md) | Elder-only Wear OS build, launcher, assistant, companion, and verification |
 | [Decisions](Decisions.md) | Dated project choices and changes to earlier decisions |
 | [Work Log](Work-Log.md) | Dated changes, observations, verification, and outstanding work |
 

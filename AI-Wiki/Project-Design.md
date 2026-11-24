@@ -40,6 +40,10 @@ For a Galaxy Watch, the phone integration can read approved records through Gala
 
 A Saathi Wear OS companion is an option for on-watch actions or measurements. It can read supported signals through Wear OS Health Services and exchange data with the paired Saathi phone app through the Wear OS Data Layer. A Wear OS emulator can test the companion UI and synthetic measurements. Actual sensors, pairing with the intended watch, and sync behavior require hardware verification. Samsung's separate Health Sensor SDK requires a compatible Galaxy Watch4 or newer and lacks emulator support. [Wear OS Data Layer](https://developer.android.com/training/wearables/data/overview) · [Simulated data](https://developer.android.com/health-and-fitness/health-services/simulated-data) · [Samsung Sensor SDK](https://developer.samsung.com/health/sensor/overview.html)
 
+### Saathi watch app plan
+
+See the [Watch App Plan](Watch-App-Plan.md) for the Wear OS 4 baseline, Elder-only experience, optional system roles, and paired phone workflow.
+
 ### Other Android-compatible wearables
 
 A watch can work with an Android phone without running Wear OS. For synced activity imports, prefer one phone-side Health Connect reader. Verify which records the companion app writes, their origin and timestamp, and the phone OS and region. In particular, Garmin's export requires Android 14 or newer even though Saathi supports Android 13.
