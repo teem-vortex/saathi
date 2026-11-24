@@ -1,3 +1,4 @@
+import 'call_page.dart';
 import 'app_theme.dart';
 import 'launcher_options.dart';
 import 'elder_launcher.dart';
@@ -398,6 +399,7 @@ class ModePage extends StatefulWidget {
 
 class _ModePageState extends State<ModePage> {
   late String language = widget.language;
+
   @override
   Widget build(BuildContext context) {
     final t = translations[language]!;
@@ -481,7 +483,10 @@ class _ModePageState extends State<ModePage> {
                               const SizedBox(height: 12),
                               Flexible(
                                 child: Text(
-                                  t[10 + index],
+                                  index == 4
+                                      ? (callLabels[language] ??
+                                            callLabels['English']!)[0]
+                                      : t[10 + index],
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     fontSize: 20,
@@ -530,12 +535,24 @@ class _SettingsPageState extends State<SettingsPage>
   bool highlightHome = false;
   final homeKey = GlobalKey();
   bool isAssistant = false;
+  bool callEnabled = true;
+
+  Future<void> loadCallSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    if (mounted) {
+      setState(() => callEnabled = prefs.getBool(callEnabledKey) ?? true);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (widget.showHomeSettings) refreshHome();
+    if (widget.showHomeSettings) {
+      refreshHome();
+      loadCallSetting();
+    }
   }
 
   Future<void> refreshHome() async {
@@ -636,6 +653,18 @@ class _SettingsPageState extends State<SettingsPage>
               ),
             ),
           if (widget.showHomeSettings) ...[
+            SwitchListTile(
+              title: Text((callLabels[language] ?? callLabels['English']!)[0]),
+              subtitle: Text(
+                (callLabels[language] ?? callLabels['English']!)[7],
+              ),
+              value: callEnabled,
+              onChanged: (value) async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool(callEnabledKey, value);
+                if (mounted) setState(() => callEnabled = value);
+              },
+            ),
             LauncherSettings(
               enabled: isHome,
               onDisabledTap: () {

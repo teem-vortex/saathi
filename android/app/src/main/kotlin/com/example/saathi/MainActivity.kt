@@ -7,6 +7,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.net.Uri
+import android.provider.ContactsContract
 import android.content.ActivityNotFoundException
 import android.content.pm.PackageManager
 import android.content.pm.LauncherApps
@@ -31,6 +33,9 @@ open class MainActivity : FlutterActivity() {
     private var channel: MethodChannel? = null
     private var homeRequestResult: MethodChannel.Result? = null
     private val alertAction = "com.example.saathi.OPEN_DEMO_ALERTS"
+    private var contactResult: MethodChannel.Result? = null
+    private var callResult: MethodChannel.Result? = null
+    private var pendingNumber: String? = null
     private var speechResult: MethodChannel.Result? = null
     private var textToSpeech: TextToSpeech? = null
     private var ttsReady = false
@@ -44,6 +49,31 @@ open class MainActivity : FlutterActivity() {
         channel = MethodChannel(engine.dartExecutor.binaryMessenger, "saathi/android").apply {
             setMethodCallHandler { call, result ->
                 when (call.method) {
+                    "pickCallContact" -> {
+                        if (contactResult != null) {
+                            result.error("BUSY", "Contact picker is already open", null)
+                        } else {
+                            try {
+                                contactResult = result
+                                startActivityForResult(Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI), 2202)
+                            } catch (_: Exception) {
+                                contactResult = null
+                                result.error("UNAVAILABLE", "Contact picker unavailable", null)
+                            }
+                        }
+                    }
+                    "placeCall" -> {
+                        val number = call.arguments as? String
+                        if (number.isNullOrBlank() || callResult != null) {
+                            result.success(false)
+                        } else if (checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                            pendingNumber = number
+                            callResult = result
+                            requestPermissions(arrayOf(Manifest.permission.CALL_PHONE), 2203)
+                        } else {
+                            result.success(placeCall(number))
+                        }
+                    }
                     "apps" -> {
                         val launcher = getSystemService(LauncherApps::class.java)
                         val apps = launcher.getActivityList(null, Process.myUserHandle())
@@ -202,6 +232,29 @@ open class MainActivity : FlutterActivity() {
         textToSpeech = TextToSpeech(this) { status -> ttsReady = status == TextToSpeech.SUCCESS }
     }
 
+    private fun placeCall(number: String): Boolean {
+        return try {
+            val telecom = getSystemService(android.telephony.TelephonyManager::class.java)
+            if (telecom.isEmergencyNumber(number)) {
+                startActivity(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number, null)))
+            } else {
+                startActivity(Intent(Intent.ACTION_CALL, Uri.fromParts("tel", number, null)))
+            }
+            true
+        } catch (_: Exception) { false }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 2203) {
+            val number = pendingNumber
+            val granted = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
+            callResult?.success(granted && number != null && placeCall(number))
+            callResult = null
+            pendingNumber = null
+        }
+    }
+
     @Deprecated("Deprecated in Android")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -214,6 +267,22 @@ open class MainActivity : FlutterActivity() {
                 } else null
                 pending?.success(words)
             }
+            2202 -> {
+                val pending = contactResult
+                contactResult = null
+                val uri = data?.data
+                if (resultCode != RESULT_OK || uri == null) {
+                    pending?.success(null)
+                } else {
+                    try {
+                        val fields = arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER)
+                        val contact = contentResolver.query(uri, fields, null, null, null)?.use { cursor ->
+                            if (cursor.moveToFirst()) mapOf("name" to cursor.getString(0), "number" to cursor.getString(1)) else null
+                        }
+                        pending?.success(contact)
+                    } catch (_: Exception) { pending?.error("UNAVAILABLE", "Could not read contact", null) }
+                }
+            }
             2 -> {
                 val isHome = getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME)
                 homeRequestResult?.success(isHome)
@@ -223,6 +292,10 @@ open class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        contactResult?.error("cancelled", "Contact selection interrupted", null)
+        contactResult = null
+        callResult?.success(false)
+        callResult = null
         speechResult?.error("cancelled", "Speech recognition was interrupted", null)
         speechResult = null
         textToSpeech?.stop()

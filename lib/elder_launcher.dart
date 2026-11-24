@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'elder_overview.dart';
+import 'call_page.dart';
 import 'launcher_options.dart';
 
 class ElderLauncher extends StatefulWidget {
@@ -28,6 +29,7 @@ class _ElderLauncherState extends State<ElderLauncher>
     with WidgetsBindingObserver {
   List<Map<String, dynamic>> pinnedApps = [];
   bool normal = false;
+  bool callEnabled = true;
   Animation<double>? appsTransition;
 
   Future<void> openApps() async {
@@ -78,6 +80,7 @@ class _ElderLauncherState extends State<ElderLauncher>
     setState(() {
       language = widget.preferences?.getString('language') ?? language;
       normal = widget.preferences?.getBool('launcherNormal') ?? false;
+      callEnabled = widget.preferences?.getBool(callEnabledKey) ?? true;
       pinnedApps = allApps
           .where((app) => pinned.contains(appKey(app)))
           .toList();
@@ -179,6 +182,26 @@ class _ElderLauncherState extends State<ElderLauncher>
                       ),
                     Wrap(
                       children: [
+                        if (callEnabled)
+                          SizedBox(
+                            width: (MediaQuery.sizeOf(context).width - 32) / 2,
+                            child: Card(
+                              child: ListTile(
+                                leading: const Icon(Icons.call),
+                                title: Text(
+                                  (callLabels[language] ??
+                                      callLabels['English']!)[0],
+                                ),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (_) =>
+                                        CallPage(language: language),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         if (normal)
                           SizedBox(
                             width: (MediaQuery.sizeOf(context).width - 32) / 2,
