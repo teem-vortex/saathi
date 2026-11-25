@@ -4,6 +4,8 @@
 
 ## 2026-11-25
 
+- **README logo.** Added a transparent, rounded version of the Saathi logo for the GitHub header, matching the Monitorize header proportions.
+
 - **Android JDK setup.** The system Java runtime lacked javac. Configured local Flutter and user Gradle to use Android Studio’s bundled full JDK, and documented portable setup. The pinned Gradle wrapper built both phone and Wear OS debug APKs successfully. This does not verify device behavior or configured sign-in.
 
 ## 2026-11-25

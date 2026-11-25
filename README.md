@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/saathi-icon.png" alt="Saathi logo, two hands forming an S around a heart" width="160" />
+  <img src="assets/saathi-readme-icon.png" alt="Saathi logo, two hands forming an S around a heart" width="160" />
   <h1>Saathi</h1>
   <p><strong>An Android and Wear OS companion for older adults and their families.</strong></p>
   <p>Built by Team Vortex at Global Academy of Technology for wHACKiest 2026.</p>
