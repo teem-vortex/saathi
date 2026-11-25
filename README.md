@@ -26,6 +26,8 @@ A simulated high blood pressure reading is flagged in the dashboard and generate
 
 The watch home screen shows a greeting, a demo wellness status, and large Talk and Messages tiles.
 
+![Round Wear OS screen showing the Saathi greeting, demo wellness status, and Talk and Messages tiles](wear-os-home.webp)
+
 ## Why Saathi
 
 When older adults live independently and their children, relatives, or carers visit occasionally, an unusual reading can go unnoticed until the next call. A wearable can collect readings, but a family member also needs enough context to decide whether to check in. For example, a daughter could open an alert, see which reading changed and when it was recorded, and call her mother to follow up.

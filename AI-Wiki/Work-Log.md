@@ -58,6 +58,10 @@ Entries are chronological. For substantive work, append the date, what changed, 
 - **Messaging migration review.** Reviewed local SQL and notification code; live project access and database tests were unavailable. Before applying, verify extension placement and existing objects, add authorization and concurrency tests, address pairing identity and abuse controls, and protect notification delivery against replay. The migration and service remain unverified and local.
 - **Firebase Android configuration.** Added the downloaded Firebase Android client configuration locally at `android/app/google-services.json` (package `com.example.saathi`), enabled the Google Services Gradle plugin, and added `tool/build_mvp.ps1` to build without committing credentials. `flutter pub get`, `flutter analyze`, and `flutter test` passed. A debug APK built successfully after disabling Kotlin incremental compilation to work around Windows cache-close failures. The Supabase migration and two-device push delivery remain unverified because this Codex session has no live Supabase tool access.
 - **Supabase migration applied.** The user reports the connected Supabase session applied the Saathi migration successfully: 4/4 tables created, 7/7 functions verified, RLS verified, and migration history recorded. This is external project evidence supplied by the user; two-device messaging and push delivery still need testing.
+## 2026-11-25
+
+- **Wear OS README screenshot.** Added the supplied watch home image and checked that its relative README link resolves.
+
 ## 2026-11-24
 
 - **Removed elder actions.** Removed the I'm okay and Ask for a call tiles from the phone and local watch UI, including their watch draft handlers. Flutter analysis and four tests passed; watch build and device verification remain pending.
