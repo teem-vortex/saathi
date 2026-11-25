@@ -1,12 +1,21 @@
-# Saathi
+<div align="center">
+  <img src="assets/saathi-icon.png" alt="Saathi logo, two hands forming an S around a heart" width="160" />
+  <h1>Saathi</h1>
+  <p><strong>An Android and Wear OS companion for older adults and their families.</strong></p>
+  <p>Built by Team Vortex at Global Academy of Technology for wHACKiest 2026.</p>
+  <p>
+    <a href="#screenshots">Screenshots</a> ·
+    <a href="#features">Features</a> ·
+    <a href="#demo-walkthrough">Demo</a> ·
+    <a href="#architecture">Architecture</a> ·
+    <a href="#run-locally">Run locally</a> ·
+    <a href="#pilot-and-roadmap">Roadmap</a>
+  </p>
+</div>
 
-**An Android companion for older adults and the family members who check in on them.**
+**Elder mode** makes everyday phone actions easier to find and gives older adults a way to reach family. **Guardian mode** brings connected elders and a demo alert dashboard into one view. The **Wear OS companion** puts large actions and message drafts on the wrist.
 
-Saathi brings two everyday needs into one app. Older adults get a simpler phone interface and a way to reach family. Guardians get a dashboard for reviewing alerts, seeing what changed and when, and deciding when to follow up.
-
-Built by **Team Vortex** at **Global Academy of Technology** for the **wHACKiest 2026** online ideathon, **Know Thyself** track, 26–27 November 2026.
-
-[Screenshots](#screenshots) · [Features](#features) · [Demo walkthrough](#demo-walkthrough) · [Architecture](#architecture) · [Run locally](#run-locally) · [Pilot and roadmap](#pilot-and-roadmap)
+The wellness demo uses synthetic readings. Live health monitoring is planned.
 
 ## Screenshots
 

@@ -1,5 +1,7 @@
 # Work Log
 
+- **Saathi branding.** Added the selected heart-centered S logo to the README and to the Android and Wear OS launchers. Both debug APKs built successfully.
+
 ## 2026-11-25
 
 - **Android JDK setup.** The system Java runtime lacked javac. Configured local Flutter and user Gradle to use Android Studio’s bundled full JDK, and documented portable setup. The pinned Gradle wrapper built both phone and Wear OS debug APKs successfully. This does not verify device behavior or configured sign-in.

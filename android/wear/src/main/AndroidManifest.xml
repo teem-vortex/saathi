@@ -6,7 +6,10 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
     </queries>
-    <application android:label="Saathi" android:theme="@android:style/Theme.Material.NoActionBar">
+    <application
+        android:label="Saathi"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@android:style/Theme.Material.NoActionBar">
         <meta-data android:name="com.google.android.wearable.standalone" android:value="false" />
         <activity android:name=".AppsActivity" android:exported="false" />
         <activity android:name=".AssistantActivity" android:exported="true">
